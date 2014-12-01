@@ -5,6 +5,12 @@
  */
 package cat.urv.imas.agent;
 
+import static cat.urv.imas.agent.ImasAgent.OWNER;
+import jade.domain.DFService;
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.domain.FIPAException;
+
 /**
  *
  * @author Domen
@@ -13,6 +19,32 @@ public class HospitalCoordinator extends ImasAgent{
 
     public HospitalCoordinator() {
         super(AgentType.HOSPITAL_COORDINATOR);
+    }
+    
+    
+    @Override
+    protected void setup() {
+        
+        /* ** Very Important Line (VIL) ************************************* */
+        this.setEnabledO2ACommunication(true, 1);
+
+        // 1. Register the agent to the DF
+        ServiceDescription sd1 = new ServiceDescription();
+        sd1.setType(AgentType.HOSPITAL_COORDINATOR.toString());
+        sd1.setName(getLocalName());
+        sd1.setOwnership(OWNER);
+        
+        DFAgentDescription dfd = new DFAgentDescription();
+        dfd.addServices(sd1);
+        dfd.setName(getAID());
+        try {
+            DFService.register(this, dfd);
+            log("Registered to the DF");
+        } catch (FIPAException e) {
+            System.err.println(getLocalName() + " failed registration to DF [ko]. Reason: " + e.getMessage());
+            doDelete();
+        }
+        
     }
     
 }
