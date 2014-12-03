@@ -21,11 +21,15 @@ import cat.urv.imas.onthology.InitialGameSettings;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.gui.GraphicInterface;
 import cat.urv.imas.behaviour.central.RequestResponseBehaviour;
+import cat.urv.imas.map.Cell;
 import jade.core.*;
 import jade.domain.*;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPANames.InteractionProtocol;
 import jade.lang.acl.*;
+import jade.wrapper.AgentContainer;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -148,6 +152,33 @@ public class CentralAgent extends ImasAgent {
 
         // Setup finished. When the last inform is received, the agent itself will add
         // a behaviour to send/receive actions
+        
+        
+        Map<AgentType, List<Cell>> a = this.game.getAgentList();
+        AgentContainer ac= this.getContainerController();
+        List<Cell> FIR = a.get(AgentType.FIREMAN);
+        List<Cell> AMB = a.get(AgentType.AMBULANCE);
+        List<Cell> HOS = a.get(AgentType.HOSPITAL);
+        
+        int i = 1; 
+        for (Cell HOS1 : HOS) {
+            UtilsAgents.createAgent(ac, "hospitalAgent" + i, "cat.urv.imas.agent.HospitalAgent", null);
+            i++;
+        }
+        
+        i = 1; 
+        for (Cell AMB1 : AMB) {
+            UtilsAgents.createAgent(ac, "ambulanceAgent" + i, "cat.urv.imas.agent.AmbulanceAgent", null);
+            i++;
+        }
+        
+        i = 1; 
+        for (Cell FIR1 : FIR) {
+            UtilsAgents.createAgent(ac, "firemenAgent" + i, "cat.urv.imas.agent.FiremenAgent", null);
+            i++;
+        }
+        
+        
     }
     
     public void updateGUI() {

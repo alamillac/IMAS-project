@@ -35,6 +35,7 @@ public class GenerateGameSettings {
         settings.setHospitalCapacities(new int[]{5, 5, 5});
         settings.setSimulationSteps(STEPS);
         settings.setTitle("Practical exercise IMAS");
+        
         //add here whatever settings.set* to define your new settings.
     }
 
