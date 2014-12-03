@@ -133,7 +133,7 @@ public class CentralAgent extends ImasAgent {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
+ 
         // search CoordinatorAgent
         ServiceDescription searchCriterion = new ServiceDescription();
         searchCriterion.setType(AgentType.COORDINATOR.toString());
