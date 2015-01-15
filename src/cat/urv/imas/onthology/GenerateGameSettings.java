@@ -20,7 +20,7 @@ import javax.xml.namespace.QName;
  */
 public class GenerateGameSettings {
 
-    private static final int STEPS = 6;
+    private static final int STEPS = 100;
 
     /*
      * ********************* JUST SET YOUR SETTINGS ****************************

@@ -30,6 +30,7 @@ import jade.lang.acl.*;
 import jade.wrapper.AgentContainer;
 import java.util.List;
 import java.util.Map;
+import jade.core.behaviours.TickerBehaviour;
 
 
 /**
@@ -54,6 +55,11 @@ public class CentralAgent extends ImasAgent {
      */
     private AID coordinatorAgent;
 
+    /*
+     * Actual step
+     */
+    private int numStep = 0;
+
     /**
      * Builds the Central agent.
      */
@@ -62,7 +68,7 @@ public class CentralAgent extends ImasAgent {
     }
 
     /**
-     * A message is shown in the log area of the GUI, as well as in the 
+     * A message is shown in the log area of the GUI, as well as in the
      * stantard output.
      *
      * @param log String to show
@@ -74,9 +80,9 @@ public class CentralAgent extends ImasAgent {
         }
         super.log(log);
     }
-    
+
     /**
-     * An error message is shown in the log area of the GUI, as well as in the 
+     * An error message is shown in the log area of the GUI, as well as in the
      * error output.
      *
      * @param error Error to show
@@ -97,7 +103,21 @@ public class CentralAgent extends ImasAgent {
     public GameSettings getGame() {
         return this.game;
     }
-    
+
+    /*
+     * Set fires on the city
+     */
+    protected void addNewFire() {
+    }
+
+    /*
+     * This method is executed on each step
+     */
+    protected void simulationStep() {
+        //add fires
+        addNewFire();
+    }
+
     /**
      * Agent setup method - called when it first come on-line. Configuration of
      * language to use, ontology and initialization of behaviours.
@@ -113,7 +133,7 @@ public class CentralAgent extends ImasAgent {
         sd1.setType(AgentType.CENTRAL.toString());
         sd1.setName(getLocalName());
         sd1.setOwnership(OWNER);
-        
+
         DFAgentDescription dfd = new DFAgentDescription();
         dfd.addServices(sd1);
         dfd.setName(getAID());
@@ -137,7 +157,7 @@ public class CentralAgent extends ImasAgent {
         } catch (Exception e) {
             e.printStackTrace();
         }
- 
+
         // search CoordinatorAgent
         ServiceDescription searchCriterion = new ServiceDescription();
         searchCriterion.setType(AgentType.COORDINATOR.toString());
@@ -152,35 +172,55 @@ public class CentralAgent extends ImasAgent {
 
         // Setup finished. When the last inform is received, the agent itself will add
         // a behaviour to send/receive actions
-        
-        
+
+
         Map<AgentType, List<Cell>> a = this.game.getAgentList();
-        AgentContainer ac= this.getContainerController();
+        AgentContainer ac = this.getContainerController();
         List<Cell> FIR = a.get(AgentType.FIREMAN);
         List<Cell> AMB = a.get(AgentType.AMBULANCE);
         List<Cell> HOS = a.get(AgentType.HOSPITAL);
-        
-        int i = 1; 
+
+        int i = 1;
         for (Cell HOS1 : HOS) {
             UtilsAgents.createAgent(ac, "hospitalAgent" + i, "cat.urv.imas.agent.HospitalAgent", null);
             i++;
         }
-        
-        i = 1; 
+
+        i = 1;
         for (Cell AMB1 : AMB) {
             UtilsAgents.createAgent(ac, "ambulanceAgent" + i, "cat.urv.imas.agent.AmbulanceAgent", null);
             i++;
         }
-        
-        i = 1; 
+
+        i = 1;
         for (Cell FIR1 : FIR) {
             UtilsAgents.createAgent(ac, "firemenAgent" + i, "cat.urv.imas.agent.FiremenAgent", null);
             i++;
         }
-        
-        
+
+        // Start the simulation. SimulationStep will be executed every 500 milsec
+        final int maxSteps = game.getSimulationSteps();
+        log("Simulation start. Running " + Integer.toString(maxSteps) + " steps");
+        addBehaviour(new TickerBehaviour(this, 500) {
+            protected void onTick() {
+                if(numStep < maxSteps) {
+                    //log the current step
+                    log("Step " + Integer.toString(numStep));
+
+                    simulationStep();
+
+                    //redraw the map
+                    updateGUI();
+                    numStep ++;
+                }
+                else {
+                    removeBehaviour(this);
+                    log("Simulation completed");
+                }
+            }
+        });
     }
-    
+
     public void updateGUI() {
         System.out.println("CENTRAL AGENT:" + this.game.get(2, 2).toString());
         this.gui.updateGame();
