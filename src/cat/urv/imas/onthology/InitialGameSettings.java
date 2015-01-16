@@ -1,5 +1,5 @@
 /**
- * IMAS base code for the practical work. 
+ * IMAS base code for the practical work.
  * Copyright (C) 2014 DEIM - URV
  *
  * This program is free software: you can redistribute it and/or modify it under
@@ -34,18 +34,18 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * Initial game settings and automatic loading from file.
- * 
+ *
  * Use the GenerateGameSettings to build the game.settings configuration file.
  */
 @XmlRootElement(name = "InitialGameSettings")
 public class InitialGameSettings extends GameSettings {
-    
+
     /*
      * Constants that define the type of content into the initialMap.
      * Any other value in a cell means that a cell is a building and
      * the value is the number of people in it.
-     * 
-     * Cells with mobile vehicles are street cells after vehicles 
+     *
+     * Cells with mobile vehicles are street cells after vehicles
      * move around.
      */
     /**
@@ -115,7 +115,7 @@ public class InitialGameSettings extends GameSettings {
             filename = "game.settings";
         }
         try {
-            // create JAXBContext which will be used to update writer 		
+            // create JAXBContext which will be used to update writer
             JAXBContext context = JAXBContext.newInstance(InitialGameSettings.class);
             Unmarshaller u = context.createUnmarshaller();
             InitialGameSettings starter = (InitialGameSettings) u.unmarshal(new FileReader(filename));
@@ -140,14 +140,16 @@ public class InitialGameSettings extends GameSettings {
         int hospitalCapacity;
         int[] hospitalCapacities = this.getHospitalCapacities();
         this.agentList = new HashMap();
-        
+        this.fireList = new HashMap();
+        this.buildingList = new ArrayList();
+
         int cell;
         StreetCell c;
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < cols; col++) {
                 cell = initialMap[row][col];
                 switch (cell) {
-                    case A: 
+                    case A:
                         c = new StreetCell(row, col);
                         c.addAgent(new InfoAgent(AgentType.AMBULANCE));
                         map[row][col] = c;
@@ -159,7 +161,7 @@ public class InitialGameSettings extends GameSettings {
                         map[row][col] = c;
                         addAgentToList(AgentType.FIREMAN, c);
                         break;
-                    case P: 
+                    case P:
                         c = new StreetCell(row, col);
                         c.addAgent(new InfoAgent(AgentType.PRIVATE_VEHICLE));
                         map[row][col] = c;
@@ -182,7 +184,9 @@ public class InitialGameSettings extends GameSettings {
                         }
                         break;
                     default: //positive value means number of citizens in a building.
-                        map[row][col] = new BuildingCell(cell, row, col);
+                        BuildingCell building = new BuildingCell(cell, row, col);
+                        map[row][col] = building;
+                        this.buildingList.add(building);
                         break;
                 }
             }
@@ -194,7 +198,7 @@ public class InitialGameSettings extends GameSettings {
 
     /**
      * Ensure agent list is correctly updated.
-     * 
+     *
      * @param type agent type.
      * @param cell cell where appears the agent.
      */

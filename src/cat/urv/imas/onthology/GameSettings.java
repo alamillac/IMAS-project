@@ -1,5 +1,5 @@
 /**
- * IMAS base code for the practical work. 
+ * IMAS base code for the practical work.
  * Copyright (C) 2014 DEIM - URV
  *
  * This program is free software: you can redistribute it and/or modify it under
@@ -19,6 +19,7 @@ package cat.urv.imas.onthology;
 
 import cat.urv.imas.agent.AgentType;
 import cat.urv.imas.map.Cell;
+import cat.urv.imas.map.BuildingCell;
 import java.util.List;
 import java.util.Map;
 import javax.xml.bind.annotation.XmlElement;
@@ -28,18 +29,18 @@ import javax.xml.bind.annotation.XmlRootElement;
 /**
  * Current game settings. Cell coordinates are zero based: row and column values
  * goes from [0..n-1], both included.
- * 
+ *
  * Use the GenerateGameSettings to build the game.settings configuration file.
- * 
+ *
  */
 @XmlRootElement(name = "GameSettings")
-public class GameSettings implements java.io.Serializable {    
+public class GameSettings implements java.io.Serializable {
 
     /* Default values set to all attributes, just in case. */
     /**
      * Seed for random numbers.
      */
-    private float seed = 0.0f;
+    private long seed = 0;
     /**
      * List of number of beds per hospital. Therefore, a value "{10, 10, 10}"
      * means there will be 3 hospitals with 10 beds each. The number of beds
@@ -88,19 +89,23 @@ public class GameSettings implements java.io.Serializable {
      * Computed summary of the list of fires. The integer value introduces
      * the burned ratio of the building.
      */
-    protected Map<Cell, Integer> fireList;
+    protected Map<BuildingCell, Integer> fireList;
     /**
      * Title to set to the GUI.
      */
     protected String title = "Demo title";
-    
+    /*
+     * List of the buildings on the map
+     */
+    protected List<BuildingCell> buildingList;
 
-    public float getSeed() {
+
+    public long getSeed() {
         return seed;
     }
 
     @XmlElement(required = true)
-    public void setSeed(float seed) {
+    public void setSeed(long seed) {
         this.seed = seed;
     }
 
@@ -184,7 +189,7 @@ public class GameSettings implements java.io.Serializable {
     public Cell[][] getMap() {
         return map;
     }
-    
+
     /**
      * Gets the cell given its coordinate.
      * @param row row number (zero based)
@@ -205,22 +210,30 @@ public class GameSettings implements java.io.Serializable {
     }
 
     @XmlTransient
-    public Map<Cell, Integer> getFireList() {
+    public Map<BuildingCell, Integer> getFireList() {
         return fireList;
     }
 
-    public void setFireList(Map<Cell, Integer> fireList) {
+    public void setFireList(Map<BuildingCell, Integer> fireList) {
         this.fireList = fireList;
     }
-    
+
+    public void setBuildingList(List<BuildingCell> buildings) {
+        this.buildingList = buildings;
+    }
+
+    public List<BuildingCell> getBuildingList() {
+        return buildingList;
+    }
+
     public String toString() {
         //TODO: show a human readable summary of the game settings.
         return "Game settings";
     }
-    
+
     public String getShortString() {
         //TODO: list of agents, hospitals and gas stations (if any)
         return "Game settings: agent related string";
     }
-    
+
 }

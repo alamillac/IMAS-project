@@ -104,7 +104,7 @@ public class BuildingCell extends Cell {
      * negative).
      */
     public void updateBurnedRatio(int ratio) {
-        this.burnedRatio -= ratio;
+        this.burnedRatio += ratio;
         if (burnedRatio < 0) {
             burnedRatio = 0;
         } else if (burnedRatio > 100) {

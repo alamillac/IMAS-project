@@ -22,6 +22,7 @@ import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.gui.GraphicInterface;
 import cat.urv.imas.behaviour.central.RequestResponseBehaviour;
 import cat.urv.imas.map.Cell;
+import cat.urv.imas.map.BuildingCell;
 import jade.core.*;
 import jade.domain.*;
 import jade.domain.FIPAAgentManagement.*;
@@ -31,6 +32,7 @@ import jade.wrapper.AgentContainer;
 import java.util.List;
 import java.util.Map;
 import jade.core.behaviours.TickerBehaviour;
+import java.util.Random;
 
 
 /**
@@ -44,16 +46,23 @@ public class CentralAgent extends ImasAgent {
      * GUI with the map, central agent log and statistics.
      */
     private GraphicInterface gui;
+
     /**
      * Game settings. At the very beginning, it will contain the loaded
      * initial configuration settings.
      */
     private GameSettings game;
+
     /**
      * The Coordinator agent with which interacts sharing game settings every
      * round.
      */
     private AID coordinatorAgent;
+
+    /*
+     * Random generator
+     */
+    private Random random;
 
     /*
      * Actual step
@@ -105,15 +114,82 @@ public class CentralAgent extends ImasAgent {
     }
 
     /*
+     * Init the random variable with a seed
+     */
+    protected void initRandom(long seed) {
+        random = new Random(seed);
+    }
+
+    /*
+     * Return a Building cell randomly
+     */
+    protected BuildingCell getRandomBuilding() {
+        List<BuildingCell> buildings = game.getBuildingList();
+        int num_buildings = buildings.size();
+        BuildingCell building;
+        if(num_buildings > 0) {
+            int building_id = random.nextInt(num_buildings) + 1;
+            building = buildings.get(building_id);
+        }
+        else {
+            building = null;
+        }
+        return building;
+    }
+
+    /*
+     * Update the fires ratio of burning buildings
+     */
+    protected void updateFiresRatio() {
+        //get all the burning fires
+        Map<BuildingCell, Integer> firemap = game.getFireList();
+
+        for(BuildingCell building : firemap.keySet()) {
+            int fireSpeed = firemap.get(building);
+            building.updateBurnedRatio(fireSpeed);
+
+            //logging the burning build
+            int row = building.getRow();
+            int col = building.getCol();
+            log("Building in (" + Integer.toString(row) + "," + Integer.toString(col) + ") is being burned with burnratio " + Integer.toString(fireSpeed));
+        }
+    }
+
+    /*
+     * Set a fire in a building
+     */
+    protected void setFire() {
+        //get a building to put fire on it
+        int fireSpeed = game.getFireSpeed();
+        BuildingCell building = getRandomBuilding();
+
+        //building on fire if it don't have fire
+        if(building != null && ! building.isOnFire()) {
+            Map<BuildingCell, Integer> firemap = game.getFireList();
+            firemap.put(building, fireSpeed);
+        }
+    }
+
+    /*
      * Set fires on the city
      */
     protected void addNewFire() {
+        int randomNum = random.nextInt(100) + 1;
+        int fireProb = 70; //a probability of add a new fire
+
+        //add a fire with a fireProb
+        if(randomNum < fireProb) {
+            log("setting a fire");
+            setFire();
+        }
     }
 
     /*
      * This method is executed on each step
      */
     protected void simulationStep() {
+        //update fires
+        updateFiresRatio();
         //add fires
         addNewFire();
     }
@@ -199,6 +275,7 @@ public class CentralAgent extends ImasAgent {
         }
 
         // Start the simulation. SimulationStep will be executed every 500 milsec
+        initRandom(game.getSeed());
         final int maxSteps = game.getSimulationSteps();
         log("Simulation start. Running " + Integer.toString(maxSteps) + " steps");
         addBehaviour(new TickerBehaviour(this, 500) {

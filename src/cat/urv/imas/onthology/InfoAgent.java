@@ -56,7 +56,7 @@ public class InfoAgent implements java.io.Serializable {
     }
 
     /**
-     * Gets the hash code. To simplify it, just returns the hash code from itsç
+     * Gets the hash code. To simplify it, just returns the hash code from its
      * type.
      *
      * @return
