@@ -84,10 +84,14 @@ public class CoordinatorAgent extends ImasAgent {
         // searchAgent is a blocking method, so we will obtain always a correct AID
 
         /* ********************************************************************/
+       
+        
         ACLMessage initialRequest = new ACLMessage(ACLMessage.REQUEST);
         initialRequest.clearAllReceiver();
         initialRequest.addReceiver(this.centralAgent);
         initialRequest.setProtocol(InteractionProtocol.FIPA_REQUEST);
+        
+        
         log("Request message to agent");
         try {
             initialRequest.setContent(MessageContent.GET_MAP);
@@ -98,6 +102,7 @@ public class CoordinatorAgent extends ImasAgent {
 
         //we add a behaviour that sends the message and waits for an answer
         this.addBehaviour(new RequesterBehaviour(this, initialRequest));
+       
 
         // setup finished. When we receive the last inform, the agent itself will add
         // a behaviour to send/receive actions

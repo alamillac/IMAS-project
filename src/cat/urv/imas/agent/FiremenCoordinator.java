@@ -5,6 +5,7 @@
  */
 package cat.urv.imas.agent;
 
+import cat.urv.imas.behaviour.firemenCoordinator.RequestResponseBehaviour;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.behaviour.coordinator.RequesterBehaviour;
 import cat.urv.imas.onthology.MessageContent;
@@ -55,6 +56,9 @@ public class FiremenCoordinator extends ImasAgent{
             System.err.println(getLocalName() + " failed registration to DF [ko]. Reason: " + e.getMessage());
             doDelete();
         }
+        
+        MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchProtocol(InteractionProtocol.FIPA_REQUEST), MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+        this.addBehaviour(new RequestResponseBehaviour(this, mt));
         
     }
     
