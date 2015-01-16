@@ -8,6 +8,8 @@ package cat.urv.imas.behaviour.firemenCoordinator;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.proto.AchieveREResponder;
+
+
 import cat.urv.imas.agent.FiremenCoordinator;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.map.StreetCell;

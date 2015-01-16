@@ -79,8 +79,8 @@ public class RequesterBehaviour extends AchieveREInitiator {
             ACLMessage initialRequest = new ACLMessage(ACLMessage.INFORM);
             initialRequest.clearAllReceiver();
             ServiceDescription searchCriterion = new ServiceDescription();
-            //searchCriterion.setType(AgentType.HOSPITAL_COORDINATOR.toString());
-            //initialRequest.addReceiver(UtilsAgents.searchAgent(myAgent, searchCriterion));
+            searchCriterion.setType(AgentType.HOSPITAL_COORDINATOR.toString());
+            initialRequest.addReceiver(UtilsAgents.searchAgent(myAgent, searchCriterion));
             searchCriterion.setType(AgentType.FIREMEN_COORDINATOR.toString());
             initialRequest.addReceiver(UtilsAgents.searchAgent(myAgent, searchCriterion));
             initialRequest.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);

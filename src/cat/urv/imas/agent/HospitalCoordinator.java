@@ -6,10 +6,18 @@
 package cat.urv.imas.agent;
 
 import static cat.urv.imas.agent.ImasAgent.OWNER;
+import jade.core.Agent;
+import jade.core.behaviours.SimpleBehaviour;
+import jade.core.behaviours.CyclicBehaviour;
+import jade.proto.AchieveREInitiator;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
+import jade.domain.FIPANames;
+import jade.lang.acl.ACLMessage;
+import jade.proto.AchieveREResponder;
+
 
 /**
  *
@@ -45,6 +53,19 @@ public class HospitalCoordinator extends ImasAgent{
             doDelete();
         }
         
+        addBehaviour(new CyclicBehaviour(this)
+        {
+            @Override
+            public void action() {
+                ACLMessage msg= receive();
+                        if (msg!=null)
+                            System.out.println( " - " +
+                               myAgent.getLocalName() + " <- " +
+                               msg.getContent() );
+            }
+            
+        }
+        );
     }
-    
+
 }
