@@ -201,7 +201,7 @@ public class CentralAgent extends ImasAgent {
     }
 
     /*
-     * Search for destroyed buildings (burned ratio = 100) and kill all the citizen on those buildings.
+     * Search for destroyed buildings (burned ratio = 100) and "kill" all the citizen on those buildings.
      */
     protected void updateDeaths() {
     }
