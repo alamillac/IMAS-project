@@ -156,7 +156,7 @@ public class CentralAgent extends ImasAgent {
     }
 
     /*
-     * Set a fire in a building
+     * Set a fire in a random building
      */
     protected void setFire() {
         //get a building to put fire on it
@@ -172,6 +172,7 @@ public class CentralAgent extends ImasAgent {
 
     /*
      * Set fires on the city
+     * There is a probability that a fire occur in a building
      */
     protected void addNewFire() {
         int randomNum = random.nextInt(100) + 1;
@@ -185,6 +186,38 @@ public class CentralAgent extends ImasAgent {
     }
 
     /*
+     * Print all the statistics of the step.
+     * +Percentage of fires that had firemen trying to put it out.
+     * +Percentage of fires that were totally put out.
+     * +Average of burned ratio of buildings when the first fireman arrived.
+     * +Percentage of people in risk due to fires.
+     * +Percentage of people brought to hospitals.
+     * +Percentage of dead people due to fires.
+     * +Percentage of occupied beds by simulation steps, and their average.
+     * +The number of buildings destroyed. This value is gathered by the SystemAgent and it is only zero if all fires are put out and no building is destroyed.
+     * +The number of dead citizens. This value is also gathered by the SystemAgent and it will show the number of fire victims. Each building on fire has an amount of citizens in it. This statistic value will be only zero when no citizens have died due to the fires.
+     */
+    protected void showStatistics() {
+    }
+
+    /*
+     * Search for destroyed buildings (burned ratio = 100) and kill all the citizen on those buildings.
+     */
+    protected void updateDeaths() {
+    }
+
+    /*
+     * Move all the private vehicles on the city with the following rules:
+     * -If a private vehicle is in any street, the private vehicle has to go straight on in the same direction.
+     *  -If a private vehicle arrives at a street cell where the vehicle can turn right and/or left (like in a street cross), the private vehicle will have:
+     *      +An 80% of probability of going straight on, and
+     *      +A 20% of turning right or left. Both directions will have the same probability of being chosen whenever they both are available.
+     *  -If the private vehicle arrives at a street cell from which cannot go straight on, it will have the same probability of turning right or left if both directions are available.
+     */
+    protected void movePrivateVehicles() {
+    }
+
+    /*
      * This method is executed on each step
      */
     protected void simulationStep() {
@@ -192,6 +225,12 @@ public class CentralAgent extends ImasAgent {
         updateFiresRatio();
         //add fires
         addNewFire();
+        //vehicles Movement
+        movePrivateVehicles();
+        //kill all the citizens of destroyed buildings
+        updateDeaths();
+        //Show the statistics of the step
+        showStatistics();
     }
 
     /**
