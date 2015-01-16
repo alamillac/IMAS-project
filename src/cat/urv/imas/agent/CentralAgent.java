@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import jade.core.behaviours.TickerBehaviour;
 import java.util.Random;
+import java.util.Iterator;
 
 
 /**
@@ -68,6 +69,11 @@ public class CentralAgent extends ImasAgent {
      * Actual step
      */
     private int numStep = 0;
+
+    /*
+     * Total number of citizens killed by fire
+     */
+    private int totalDeadCitizens = 0;
 
     /**
      * Builds the Central agent.
@@ -202,8 +208,36 @@ public class CentralAgent extends ImasAgent {
 
     /*
      * Search for destroyed buildings (burned ratio = 100) and "kill" all the citizen on those buildings.
+     * Return the number of citizens dead on the step.
      */
-    protected void updateDeaths() {
+    protected int updateDeaths() {
+        //get all the burning fires
+        Map<BuildingCell, Integer> firemap = game.getFireList();
+
+        Iterator<Map.Entry<BuildingCell, Integer>> iter = firemap.entrySet().iterator();
+
+        int stepDeadCitizens = 0;
+        while(iter.hasNext()) {
+            Map.Entry<BuildingCell, Integer> building_bratio = iter.next();
+
+            BuildingCell building = building_bratio.getKey();
+            if(building.isDestroyed()) {
+                //kill all the citizen on the building
+                int deadCitizen = building.killCitizens();
+                stepDeadCitizens += deadCitizen;
+                totalDeadCitizens += deadCitizen;
+
+                //remove the building from the fireList
+                iter.remove();
+
+                //logging the destroyed building
+                int row = building.getRow();
+                int col = building.getCol();
+                log("Building in (" + Integer.toString(row) + "," + Integer.toString(col) + ") was destroyed by fire. " + deadCitizen + " citizens died in the building");
+            }
+        }
+
+        return stepDeadCitizens;
     }
 
     /*
@@ -228,7 +262,7 @@ public class CentralAgent extends ImasAgent {
         //vehicles Movement
         movePrivateVehicles();
         //kill all the citizens of destroyed buildings
-        updateDeaths();
+        int stepDeads = updateDeaths();
         //Show the statistics of the step
         showStatistics();
     }
