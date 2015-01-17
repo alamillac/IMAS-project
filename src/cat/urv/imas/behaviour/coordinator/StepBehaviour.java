@@ -3,6 +3,7 @@ package cat.urv.imas.behaviour.coordinator;
 import cat.urv.imas.agent.CoordinatorAgent;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.onthology.MessageContent;
+import cat.urv.imas.utils.MessageType;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.MessageTemplate;
 import jade.core.behaviours.CyclicBehaviour;
@@ -19,17 +20,20 @@ public class StepBehaviour extends CyclicBehaviour {
         ACLMessage msg = myAgent.receive(mt);
         
         if (msg != null) {
-<<<<<<< HEAD
+
             System.out.println("Message received: new Step");
-=======
+
             try {
                 Object content = msg.getContentObject();
                 if (content instanceof MessageContent) {
                     MessageContent mc = (MessageContent)content;
-                    if(mc.getMessageType().equals(MessageContent.NEW_STEP)) {
-                        System.out.println("Message received: new Step");
-
-                        ((CoordinatorAgent)this.myAgent).setGame((GameSettings)mc.getContent());
+                    switch(mc.getMessageType()) {
+                        case INFORM_NEW_STEP:
+                            System.out.println("Message received: new Step");
+                            ((CoordinatorAgent)this.myAgent).setGame((GameSettings)mc.getContent());
+                            break;
+                        default:
+                            block();
                     }
                 }
                 else {
@@ -38,9 +42,6 @@ public class StepBehaviour extends CyclicBehaviour {
             } catch (UnreadableException ex) {
                 Logger.getLogger(StepBehaviour.class.getName()).log(Level.SEVERE, null, ex);
             }
-            
->>>>>>> 738dc78b4b277c87bc0679e7423e61360dabbb3b
-            
         }
         else {
             block();
