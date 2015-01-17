@@ -83,10 +83,14 @@ public class RequesterBehaviour extends AchieveREInitiator {
             initialRequest.addReceiver(UtilsAgents.searchAgent(myAgent, searchCriterion));
             searchCriterion.setType(AgentType.FIREMEN_COORDINATOR.toString());
             initialRequest.addReceiver(UtilsAgents.searchAgent(myAgent, searchCriterion));
-            initialRequest.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
+            
+           // initialRequest.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
+            
+            
             
             try {
-                initialRequest.setContent("qrac");
+                
+                initialRequest.setContentObject(game);
                // log("Request message content:" + initialRequest.getContent());
             } catch (Exception e) {
                 e.printStackTrace();

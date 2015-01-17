@@ -6,10 +6,13 @@
 package cat.urv.imas.agent;
 import static cat.urv.imas.agent.ImasAgent.OWNER;
  import jade.core.*;
+import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
+import jade.lang.acl.ACLMessage;
+import jade.proto.AchieveREResponder;
 /**
  *
  * @author Domen
@@ -44,6 +47,24 @@ public class FiremenAgent extends ImasAgent{
             System.err.println(getLocalName() + " failed registration to DF [ko]. Reason: " + e.getMessage());
             doDelete();
         }
+        
+        addBehaviour(new CyclicBehaviour(this)
+        {
+            @Override
+            public void action() {
+                ACLMessage msg= receive();
+                        if (msg!=null) {
+                            System.out.println( " - " +
+                               myAgent.getLocalName() + " <- " +
+                               msg.getContent() );
+                        }
+            }
+            
+        }
+        );
+        
+       // addBehaviour(new AchieveREResponder );
+       
     }
     
 }

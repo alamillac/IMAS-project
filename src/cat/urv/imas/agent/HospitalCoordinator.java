@@ -6,6 +6,9 @@
 package cat.urv.imas.agent;
 
 import static cat.urv.imas.agent.ImasAgent.OWNER;
+import cat.urv.imas.map.Cell;
+import cat.urv.imas.onthology.GameSettings;
+import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.SimpleBehaviour;
 import jade.core.behaviours.CyclicBehaviour;
@@ -16,7 +19,13 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.UnreadableException;
 import jade.proto.AchieveREResponder;
+import jade.wrapper.AgentContainer;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 /**
@@ -58,10 +67,46 @@ public class HospitalCoordinator extends ImasAgent{
             @Override
             public void action() {
                 ACLMessage msg= receive();
-                        if (msg!=null)
+                        if (msg!=null){
                             System.out.println( " - " +
-                               myAgent.getLocalName() + " <- " +
-                               msg.getContent() );
+                               myAgent.getLocalName() + " <- " + "game settings rrecived");
+                               //msg.getContent() );
+                    
+                            try {
+                                GameSettings game = (GameSettings) msg.getContentObject();
+                                ACLMessage initialRequest = new ACLMessage(ACLMessage.INFORM);
+                                initialRequest.clearAllReceiver();
+                                ServiceDescription searchCriterion = new ServiceDescription();
+                                searchCriterion.setType(AgentType.HOSPITAL.toString());
+                               
+                                
+                                Map<AgentType, List<Cell>> a = game.getAgentList();
+                                List<Cell> HOS = a.get(AgentType.HOSPITAL);
+                                
+                                int i = 1;
+                                for (Cell HOS1 : HOS) {
+                                    searchCriterion.setName("hospitalAgent" + i);
+                                    initialRequest.addReceiver(UtilsAgents.searchAgent(this.myAgent, searchCriterion));
+                                    i++;
+                                }
+                                
+                               try {
+
+                                   initialRequest.setContent("Message recive!!");
+                                  // log("Request message content:" + initialRequest.getContent());
+                               } catch (Exception e) {
+                                   e.printStackTrace();
+                               }
+                               this.myAgent.send(initialRequest);
+                               //this.send(initialRequest);
+                            
+                            } catch (UnreadableException ex) {
+                                Logger.getLogger(HospitalCoordinator.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                            
+                            
+                           
+                        }
             }
             
         }

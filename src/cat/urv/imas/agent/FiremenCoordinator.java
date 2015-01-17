@@ -8,12 +8,18 @@ package cat.urv.imas.agent;
 import cat.urv.imas.behaviour.firemenCoordinator.RequestResponseBehaviour;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.behaviour.coordinator.RequesterBehaviour;
+import cat.urv.imas.map.Cell;
 import cat.urv.imas.onthology.MessageContent;
 import jade.core.*;
+import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.*;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPANames.InteractionProtocol;
 import jade.lang.acl.*;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -57,8 +63,56 @@ public class FiremenCoordinator extends ImasAgent{
             doDelete();
         }
         
-        MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchProtocol(InteractionProtocol.FIPA_REQUEST), MessageTemplate.MatchPerformative(ACLMessage.INFORM));
-        this.addBehaviour(new RequestResponseBehaviour(this, mt));
+        addBehaviour(new CyclicBehaviour(this)
+        {
+            @Override
+            public void action() {
+                ACLMessage msg= receive();
+                        if (msg!=null){
+                            System.out.println( " - " +
+                               myAgent.getLocalName() + " <- " );
+                              // msg.getContent() );
+                        
+                            try {
+                                GameSettings game = (GameSettings) msg.getContentObject();
+                                ACLMessage initialRequest = new ACLMessage(ACLMessage.INFORM);
+                                initialRequest.clearAllReceiver();
+                                ServiceDescription searchCriterion = new ServiceDescription();
+                                searchCriterion.setType(AgentType.FIREMAN.toString());
+                               
+                                
+                                Map<AgentType, List<Cell>> a = game.getAgentList();
+                                List<Cell> FIR = a.get(AgentType.FIREMAN);
+                                
+                                int i = 1;
+                                for (Cell FIR1 : FIR) {
+                                    searchCriterion.setName("firemenAgent" + i);
+                                    initialRequest.addReceiver(UtilsAgents.searchAgent(this.myAgent, searchCriterion));
+                                    i++;
+                                }
+                                
+                               try {
+
+                                   initialRequest.setContent("Message recive!!");
+                                  // log("Request message content:" + initialRequest.getContent());
+                               } catch (Exception e) {
+                                   e.printStackTrace();
+                               }
+                               this.myAgent.send(initialRequest);
+                               //this.send(initialRequest);
+                            
+                            } catch (UnreadableException ex) {
+                                Logger.getLogger(HospitalCoordinator.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                            
+                        }
+            }
+            
+        }
+        );
+        
+        //MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchProtocol(InteractionProtocol.FIPA_REQUEST), MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+        //this.addBehaviour(new RequestResponseBehaviour(this, mt));
         
     }
     

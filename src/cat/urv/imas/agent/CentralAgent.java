@@ -351,7 +351,7 @@ public class CentralAgent extends ImasAgent {
         initRandom(game.getSeed());
         final int maxSteps = game.getSimulationSteps();
         log("Simulation start. Running " + Integer.toString(maxSteps) + " steps");
-        addBehaviour(new TickerBehaviour(this, 500) {
+        addBehaviour(new TickerBehaviour(this, 5000) {
             protected void onTick() {
                 if(numStep < maxSteps) {
                     //log the current step
