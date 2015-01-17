@@ -25,6 +25,7 @@ import cat.urv.imas.agent.CentralAgent;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.map.StreetCell;
 import cat.urv.imas.onthology.MessageContent;
+import cat.urv.imas.utils.MessageType;
 import java.util.List;
 import java.util.Map;
 
@@ -59,10 +60,12 @@ public class RequestResponseBehaviour extends AchieveREResponder {
         CentralAgent agent = (CentralAgent)this.getAgent();
         ACLMessage reply = msg.createReply();
         try {
-            Object content = (Object) msg.getContent();
-            if (content.equals(MessageContent.GET_MAP)) {
-                agent.log("Request received");
-                reply.setPerformative(ACLMessage.AGREE);
+            MessageContent mc = (MessageContent) msg.getContentObject();
+            switch(mc.getMessageType()) {
+                case REQUEST_CITY_STATUS:
+                    agent.log("Request received");
+                    reply.setPerformative(ACLMessage.AGREE);
+                    break;
             }
         } catch (Exception e) {
             reply.setPerformative(ACLMessage.FAILURE);
@@ -99,7 +102,8 @@ public class RequestResponseBehaviour extends AchieveREResponder {
         agent.updateGUI(); //update gui
 
         try {
-            reply.setContentObject(agent.getGame());
+            MessageContent mc = new MessageContent(MessageType.INFORM_NEW_STEP, agent.getGame());
+            reply.setContentObject(mc);
         } catch (Exception e) {
             reply.setPerformative(ACLMessage.FAILURE);
             agent.errorLog(e.toString());

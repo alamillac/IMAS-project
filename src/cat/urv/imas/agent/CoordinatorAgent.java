@@ -20,6 +20,7 @@ package cat.urv.imas.agent;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.behaviour.coordinator.RequesterBehaviour;
 import cat.urv.imas.onthology.MessageContent;
+import cat.urv.imas.utils.MessageType;
 import jade.core.*;
 import jade.domain.*;
 import jade.domain.FIPAAgentManagement.*;
@@ -166,7 +167,8 @@ public class CoordinatorAgent extends ImasAgent {
 
         log("Request message to agent");
         try {
-            initialRequest.setContent(MessageContent.GET_MAP);
+            MessageContent mc = new MessageContent(MessageType.REQUEST_CITY_STATUS, null);
+            initialRequest.setContentObject(mc);
             log("Request message content:" + initialRequest.getContent());
         } catch (Exception e) {
             e.printStackTrace();

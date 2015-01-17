@@ -28,6 +28,7 @@ import cat.urv.imas.agent.UtilsAgents;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.onthology.MessageContent;
 import cat.urv.imas.behaviour.coordinator.DoneBehaviour;
+import cat.urv.imas.utils.MessageType;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPANames;
 
@@ -67,6 +68,7 @@ public class RequesterBehaviour extends AchieveREInitiator {
     protected void handleInform(ACLMessage msg) {
         CoordinatorAgent agent = (CoordinatorAgent) this.getAgent();
         agent.log("INFORM received from " + ((AID) msg.getSender()).getLocalName());
+        
         try {
             //get Game settings
             GameSettings game = (GameSettings) msg.getContentObject();
@@ -103,9 +105,34 @@ public class RequesterBehaviour extends AchieveREInitiator {
 
 
 
-        } catch (Exception e) {
-            agent.errorLog("Incorrect content: " + e.toString());
+            MessageContent mc = (MessageContent)msg.getContentObject();
+            switch(mc.getMessageType()) {
+                case INFORM_CITY_STATUS:
+                    GameSettings game = (GameSettings) msg.getContentObject();
+                    agent.setGame(game);
+                    agent.log(game.getShortString());
+                    ACLMessage initialRequest = new ACLMessage(ACLMessage.INFORM);
+                    initialRequest.clearAllReceiver();
+                    ServiceDescription searchCriterion = new ServiceDescription();
+                    searchCriterion.setType(AgentType.HOSPITAL_COORDINATOR.toString());
+                    initialRequest.addReceiver(UtilsAgents.searchAgent(myAgent, searchCriterion));
+                    searchCriterion.setType(AgentType.FIREMEN_COORDINATOR.toString());
+                    initialRequest.addReceiver(UtilsAgents.searchAgent(myAgent, searchCriterion)); 
+                    try {
+                        mc = new MessageContent(MessageType.INFORM_CITY_STATUS, game);
+                        initialRequest.setContentObject(mc);
+                       // log("Request message content:" + initialRequest.getContent());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }  
+                    agent.send(initialRequest);
+                    break;
+            }
         }
+        catch(Exception ex) {
+            agent.errorLog("Incorrect content: " + ex.toString());
+        }
+
     }
 
     /**
