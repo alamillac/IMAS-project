@@ -7,8 +7,8 @@
     <hospitalCapacities>5</hospitalCapacities>
     <hospitalCapacities>5</hospitalCapacities>
     <peoplePerAmbulance>3</peoplePerAmbulance>
-    <seed>1234567.8</seed>
-    <simulationSteps>100</simulationSteps>
+    <seed>12345678</seed>
+    <simulationSteps>30</simulationSteps>
     <stepsToHealth>3</stepsToHealth>
     <title>Practical exercise IMAS</title>
     <initialMap>

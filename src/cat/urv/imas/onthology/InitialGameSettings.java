@@ -20,6 +20,7 @@ package cat.urv.imas.onthology;
 import cat.urv.imas.agent.AgentType;
 import cat.urv.imas.map.StreetCell;
 import cat.urv.imas.map.Cell;
+import cat.urv.imas.map.Coordinates;
 import cat.urv.imas.map.HospitalCell;
 import cat.urv.imas.map.BuildingCell;
 import cat.urv.imas.map.GasStationCell;
@@ -27,6 +28,8 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlElement;
@@ -145,30 +148,36 @@ public class InitialGameSettings extends GameSettings {
 
         int cell;
         StreetCell c;
+        Set<Coordinates> validDirections;
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < cols; col++) {
                 cell = initialMap[row][col];
                 switch (cell) {
                     case A:
-                        c = new StreetCell(row, col);
+                        validDirections = foundValidDirections(row, col);
+                        c = new StreetCell(row, col, validDirections);
                         c.addAgent(new InfoAgent(AgentType.AMBULANCE));
                         map[row][col] = c;
                         addAgentToList(AgentType.AMBULANCE, c);
                         break;
                     case F:
-                        c = new StreetCell(row, col);
+                        validDirections = foundValidDirections(row, col);
+                        c = new StreetCell(row, col, validDirections);
                         c.addAgent(new InfoAgent(AgentType.FIREMAN));
                         map[row][col] = c;
                         addAgentToList(AgentType.FIREMAN, c);
                         break;
                     case P:
-                        c = new StreetCell(row, col);
+                        validDirections = foundValidDirections(row, col);
+                        c = new StreetCell(row, col, validDirections);
                         c.addAgent(new InfoAgent(AgentType.PRIVATE_VEHICLE));
                         map[row][col] = c;
                         addAgentToList(AgentType.PRIVATE_VEHICLE, c);
                         break;
                     case S:
-                        map[row][col] = new StreetCell(row, col);
+                        validDirections = foundValidDirections(row, col);
+                        c = new StreetCell(row, col, validDirections);
+                        map[row][col] = c;
                         break;
                     case G:
                         map[row][col] = new GasStationCell(row, col);
@@ -194,6 +203,45 @@ public class InitialGameSettings extends GameSettings {
         if (hospitalIndex != hospitalCapacities.length) {
             throw new Error(getClass().getCanonicalName() + " : Less hospitals in the map than given capacities.");
         }
+    }
+
+    /*
+     * Return true if the value is an ambulance or fireman or personal vehicule or street
+     */
+    private boolean isStreet(int mapValue) {
+        return mapValue == A || mapValue == F || mapValue == P || mapValue == S;
+    }
+
+    /**
+     * Found all the valid directions of a cell
+     */
+    private Set<Coordinates> foundValidDirections(int row, int col) {
+        Set<Coordinates> validDirections = new HashSet();
+
+        if(isStreet(initialMap[row-1][col]) && (!isStreet(initialMap[row-1][col+1]) || !isStreet(initialMap[row][col+1]))) {
+            validDirections.add(Coordinates.NORTH);
+        }
+
+        if(isStreet(initialMap[row+1][col]) && (!isStreet(initialMap[row+1][col-1]) || !isStreet(initialMap[row][col-1]))) {
+            validDirections.add(Coordinates.SOUTH);
+        }
+
+        if(isStreet(initialMap[row][col+1]) && (!isStreet(initialMap[row+1][col+1]) || !isStreet(initialMap[row+1][col]))) {
+            validDirections.add(Coordinates.EAST);
+        }
+
+        if(isStreet(initialMap[row][col-1]) && (!isStreet(initialMap[row-1][col-1]) || !isStreet(initialMap[row-1][col]))) {
+            validDirections.add(Coordinates.WEST);
+        }
+
+        if(validDirections.size() == 0 && !isStreet(initialMap[row][col+1])) {
+            validDirections.add(Coordinates.NORTH);
+            validDirections.add(Coordinates.SOUTH);
+            validDirections.add(Coordinates.EAST);
+            validDirections.add(Coordinates.WEST);
+        }
+
+        return validDirections;
     }
 
     /**
