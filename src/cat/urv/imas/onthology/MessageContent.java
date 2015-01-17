@@ -17,6 +17,7 @@
  */
 package cat.urv.imas.onthology;
 
+import cat.urv.imas.utils.MessageType;
 import java.io.Serializable;
 
 /**
@@ -28,16 +29,14 @@ public class MessageContent implements Serializable {
      * Message sent from Coordinator agent to Central agent to get the whole
      * city information.
      */
-    public static final String GET_MAP = "Get map";
-    public static final String NEW_STEP = "New step";
     
-    private String messageType;
+    private MessageType messageType;
     private Object content;
 
     public MessageContent() {
     }
 
-    public MessageContent(String messageType, Object content) {
+    public MessageContent(MessageType messageType, Object content) {
         this.messageType = messageType;
         this.content = content;
     }
@@ -46,7 +45,7 @@ public class MessageContent implements Serializable {
         return content;
     }
 
-    public String getMessageType() {
+    public MessageType getMessageType() {
         return messageType;
     }
 
@@ -54,7 +53,7 @@ public class MessageContent implements Serializable {
         this.content = content;
     }
 
-    public void setMessageType(String messageType) {
+    public void setMessageType(MessageType messageType) {
         this.messageType = messageType;
     }
     
