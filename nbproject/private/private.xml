@@ -3,40 +3,10 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/src/cat/urv/imas/map/HospitalCell.java</file>
-            <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/src/cat/urv/imas/agent/CentralAgent.java</file>
-            <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/src/cat/urv/imas/map/Cell.java</file>
-            <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/src/cat/urv/imas/agent/HospitalAgent.java</file>
-            <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/src/cat/urv/imas/onthology/GameSettings.java</file>
-            <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/nbproject/configs/run_jade.properties</file>
-            <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/src/cat/urv/imas/gui/CellVisualizer.java</file>
-            <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/src/cat/urv/imas/gui/image/Profile2.gif</file>
-            <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/src/cat/urv/imas/onthology/MessageContent.java</file>
-            <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/src/cat/urv/imas/gui/image/Ico-dreta.gif</file>
-            <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/src/cat/urv/imas/gui/image/about.gif</file>
-            <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/src/cat/urv/imas/agent/FiremenAgent.java</file>
-            <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/src/cat/urv/imas/gui/MapVisualizer.java</file>
             <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/src/cat/urv/imas/behaviour/central/RequestResponseBehaviour.java</file>
-            <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/src/cat/urv/imas/gui/image/fletxa_dreta.gif</file>
-            <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/src/cat/urv/imas/behaviour/coordinator/RequesterBehaviour.java</file>
-            <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/src/cat/urv/imas/agent/HospitalCoordinator.java</file>
-            <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/src/cat/urv/imas/onthology/GenerateGameSettings.java</file>
-            <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/src/cat/urv/imas/gui/UtilsGUI.java</file>
-            <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/nbproject/configs/generate_settings.properties</file>
-            <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/src/cat/urv/imas/agent/AgentType.java</file>
-            <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/src/cat/urv/imas/onthology/InfoAgent.java</file>
-            <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/nbproject/private/configs/run_jade.properties</file>
-            <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/src/cat/urv/imas/map/CellType.java</file>
-            <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/src/cat/urv/imas/agent/ImasAgent.java</file>
-            <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/src/cat/urv/imas/agent/UtilsAgents.java</file>
-            <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/src/cat/urv/imas/map/GasStationCell.java</file>
-            <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/src/cat/urv/imas/gui/image/pin-t.gif</file>
-            <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/src/cat/urv/imas/gui/image/pin-t2.gif</file>
-            <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/src/cat/urv/imas/gui/LogPanel.java</file>
-            <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/src/cat/urv/imas/agent/AmbulanceAgent.java</file>
-            <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/src/cat/urv/imas/onthology/InitialGameSettings.java</file>
-            <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/src/cat/urv/imas/agent/CoordinatorAgent.java</file>
             <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/src/cat/urv/imas/agent/FiremenCoordinator.java</file>
+            <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/src/cat/urv/imas/behaviour/coordinator/RequesterBehaviour.java</file>
+            <file>file:/C:/Users/Domen/Documents/GitHub/IMAS-project/src/cat/urv/imas/agent/CentralAgent.java</file>
         </group>
     </open-files>
 </project-private>

@@ -17,11 +17,18 @@
  */
 package cat.urv.imas.behaviour.coordinator;
 
+import cat.urv.imas.agent.AgentType;
 import jade.core.AID;
 import jade.lang.acl.ACLMessage;
 import jade.proto.AchieveREInitiator;
 import cat.urv.imas.agent.CoordinatorAgent;
+import cat.urv.imas.agent.FiremenCoordinator;
+import cat.urv.imas.agent.HospitalCoordinator;
+import cat.urv.imas.agent.UtilsAgents;
 import cat.urv.imas.onthology.GameSettings;
+import cat.urv.imas.onthology.MessageContent;
+import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.domain.FIPANames;
 
 /**
  * Behaviour for the Coordinator agent to deal with AGREE messages.
@@ -63,6 +70,32 @@ public class RequesterBehaviour extends AchieveREInitiator {
             GameSettings game = (GameSettings) msg.getContentObject();
             agent.setGame(game);
             agent.log(game.getShortString());
+            
+           
+
+            /* ********************************************************************/
+
+            
+            ACLMessage initialRequest = new ACLMessage(ACLMessage.INFORM);
+            initialRequest.clearAllReceiver();
+            ServiceDescription searchCriterion = new ServiceDescription();
+            searchCriterion.setType(AgentType.HOSPITAL_COORDINATOR.toString());
+            initialRequest.addReceiver(UtilsAgents.searchAgent(myAgent, searchCriterion));
+            searchCriterion.setType(AgentType.FIREMEN_COORDINATOR.toString());
+            initialRequest.addReceiver(UtilsAgents.searchAgent(myAgent, searchCriterion));
+            initialRequest.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
+            
+            try {
+                initialRequest.setContent("qrac");
+               // log("Request message content:" + initialRequest.getContent());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            
+            agent.send(initialRequest);
+            //------------------------------------------------------------------------
+            
+            
         } catch (Exception e) {
             agent.errorLog("Incorrect content: " + e.toString());
         }
