@@ -17,10 +17,12 @@
  */
 package cat.urv.imas.onthology;
 
+import java.io.Serializable;
+
 /**
  * Content messages for inter-agent communication.
  */
-public class MessageContent {
+public class MessageContent implements Serializable {
 
     /**
      * Message sent from Coordinator agent to Central agent to get the whole
@@ -28,5 +30,32 @@ public class MessageContent {
      */
     public static final String GET_MAP = "Get map";
     public static final String DONE = "I am done";
+    
+    private String messageType;
+    private Object content;
+
+    public MessageContent() {
+    }
+
+    public MessageContent(String messageType, Object content) {
+        this.messageType = messageType;
+        this.content = content;
+    }
+
+    public Object getContent() {
+        return content;
+    }
+
+    public String getMessageType() {
+        return messageType;
+    }
+
+    public void setContent(Object content) {
+        this.content = content;
+    }
+
+    public void setMessageType(String messageType) {
+        this.messageType = messageType;
+    }
 
 }

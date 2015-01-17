@@ -72,7 +72,8 @@ public class RequesterBehaviour extends AchieveREInitiator {
             GameSettings game = (GameSettings) msg.getContentObject();
             agent.setGame(game);
             agent.log(game.getShortString());
-
+           
+            /* ********************************************************************/
 
             /**********************************************************************/
             //send Game to the others coordinators

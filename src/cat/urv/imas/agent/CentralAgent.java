@@ -172,6 +172,7 @@ public class CentralAgent extends ImasAgent {
         if(building != null && ! building.isOnFire()) {
             Map<BuildingCell, Integer> firemap = game.getFireList();
             firemap.put(building, fireSpeed);
+            
         }
     }
 
@@ -296,6 +297,52 @@ public class CentralAgent extends ImasAgent {
         //Show the statistics of the step
         showStatistics();
     }
+    
+    private void createAgents()
+    {
+        Map<AgentType, List<Cell>> a = this.game.getAgentList();
+        AgentContainer ac = this.getContainerController();
+        List<Cell> FIR = a.get(AgentType.FIREMAN);
+        List<Cell> AMB = a.get(AgentType.AMBULANCE);
+        List<Cell> HOS = a.get(AgentType.HOSPITAL);
+
+        
+        //properties for hospital
+        Object[] property = new Object[3];
+        property[0] = this.game;
+        property[1]= this.game.getStepsToHealth();
+        
+        int i = 1;
+        for (Cell HOS1 : HOS) {
+            property[2]= HOS1;
+            UtilsAgents.createAgent(ac, "hospitalAgent" + i, "cat.urv.imas.agent.HospitalAgent", property);
+            i++;
+        }
+
+        //properties for ambulance 
+        property = new Object[4];
+        property[0] = this.game;
+        property[1]= this.game.getAmbulanceLoadingSpeed();
+        property[2]= this.game.getPeoplePerAmbulance();
+        
+        i = 1;
+        for (Cell AMB1 : AMB) {
+            property[3]= AMB1;
+            UtilsAgents.createAgent(ac, "ambulanceAgent" + i, "cat.urv.imas.agent.AmbulanceAgent", property);
+            i++;
+        }
+
+        //properties for fireman 
+        property = new Object[2];
+        
+        property[0] = this.game;
+        i = 1;
+        for (Cell FIR1 : FIR) {
+            property[1]= FIR1;
+            UtilsAgents.createAgent(ac, "firemenAgent" + i, "cat.urv.imas.agent.FiremenAgent", null);
+            i++;
+        }
+    }
 
     /**
      * Agent setup method - called when it first come on-line. Configuration of
@@ -351,34 +398,11 @@ public class CentralAgent extends ImasAgent {
 
         // Setup finished. When the last inform is received, the agent itself will add
         // a behaviour to send/receive actions
+        createAgents();
 
-
-        Map<AgentType, List<Cell>> a = this.game.getAgentList();
-        AgentContainer ac = this.getContainerController();
-        List<Cell> FIR = a.get(AgentType.FIREMAN);
-        List<Cell> AMB = a.get(AgentType.AMBULANCE);
-        List<Cell> HOS = a.get(AgentType.HOSPITAL);
-
-        int i = 1;
-        for (Cell HOS1 : HOS) {
-            UtilsAgents.createAgent(ac, "hospitalAgent" + i, "cat.urv.imas.agent.HospitalAgent", null);
-            i++;
-        }
-
-        i = 1;
-        for (Cell AMB1 : AMB) {
-            UtilsAgents.createAgent(ac, "ambulanceAgent" + i, "cat.urv.imas.agent.AmbulanceAgent", null);
-            i++;
-        }
-
-        i = 1;
-        for (Cell FIR1 : FIR) {
-            UtilsAgents.createAgent(ac, "firemenAgent" + i, "cat.urv.imas.agent.FiremenAgent", null);
-            i++;
-        }
+       
 
         initRandom(game.getSeed());
-
     }
 
     public void updateGUI() {

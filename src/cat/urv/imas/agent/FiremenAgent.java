@@ -5,6 +5,8 @@
  */
 package cat.urv.imas.agent;
 import static cat.urv.imas.agent.ImasAgent.OWNER;
+import cat.urv.imas.map.Cell;
+import cat.urv.imas.onthology.GameSettings;
  import jade.core.*;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.DFService;
@@ -18,6 +20,13 @@ import jade.proto.AchieveREResponder;
  * @author Domen
  */
 public class FiremenAgent extends ImasAgent{
+
+    /**
+     * Game settings in use. So we can get city map 
+     */
+    private GameSettings game;
+    
+    private Cell firemenCell;
 
     private AID firemenCoordinator;
     
@@ -65,6 +74,40 @@ public class FiremenAgent extends ImasAgent{
         
        // addBehaviour(new AchieveREResponder );
        
+    }
+    
+    /**
+     * Update the game settings.
+     *
+     * @param game current game settings.
+     */
+    public void setGame(GameSettings game) {
+        this.game = game;
+    }
+
+    /**
+     * Gets the current game settings.
+     *
+     * @return the current game settings.
+     */
+    public GameSettings getGame() {
+        return this.game;
+    }
+    
+    public Cell getFiremenCell() {
+        return firemenCell;
+    }
+
+    public void setFiremenCell(Cell firemenCell) {
+        this.firemenCell = firemenCell;
+    }
+
+    public AID getFiremenCoordinator() {
+        return firemenCoordinator;
+    }
+
+    public void setFiremenCoordinator(AID firemenCoordinator) {
+        this.firemenCoordinator = firemenCoordinator;
     }
     
 }
