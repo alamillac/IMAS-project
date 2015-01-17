@@ -19,6 +19,7 @@ package cat.urv.imas.agent;
 
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.behaviour.coordinator.RequesterBehaviour;
+import cat.urv.imas.behaviour.coordinator.StepBehaviour;
 import cat.urv.imas.onthology.MessageContent;
 import jade.core.*;
 import jade.domain.*;
@@ -27,7 +28,7 @@ import jade.domain.FIPANames.InteractionProtocol;
 import jade.lang.acl.*;
 
 /**
- * The main Coordinator agent. 
+ * The main Coordinator agent.
  * TODO: This coordinator agent should get the game settings from the Central
  * agent every round and share the necessary information to other coordinators.
  */
@@ -65,7 +66,7 @@ public class CoordinatorAgent extends ImasAgent {
         sd1.setType(AgentType.COORDINATOR.toString());
         sd1.setName(getLocalName());
         sd1.setOwnership(OWNER);
-        
+
         DFAgentDescription dfd = new DFAgentDescription();
         dfd.addServices(sd1);
         dfd.setName(getAID());
@@ -84,14 +85,14 @@ public class CoordinatorAgent extends ImasAgent {
         // searchAgent is a blocking method, so we will obtain always a correct AID
 
         /* ********************************************************************/
-       
-        
+
+
         ACLMessage initialRequest = new ACLMessage(ACLMessage.REQUEST);
         initialRequest.clearAllReceiver();
         initialRequest.addReceiver(this.centralAgent);
         initialRequest.setProtocol(InteractionProtocol.FIPA_REQUEST);
-        
-        
+
+
         log("Request message to agent");
         try {
             initialRequest.setContent(MessageContent.GET_MAP);
@@ -102,10 +103,13 @@ public class CoordinatorAgent extends ImasAgent {
 
         //we add a behaviour that sends the message and waits for an answer
         this.addBehaviour(new RequesterBehaviour(this, initialRequest));
-       
+
 
         // setup finished. When we receive the last inform, the agent itself will add
         // a behaviour to send/receive actions
+
+        //Behaviour that wait for nextStep
+        this.addBehaviour(new StepBehaviour());
     }
 
     /**

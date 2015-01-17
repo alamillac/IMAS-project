@@ -21,11 +21,12 @@ package cat.urv.imas.onthology;
  * Content messages for inter-agent communication.
  */
 public class MessageContent {
-    
+
     /**
      * Message sent from Coordinator agent to Central agent to get the whole
      * city information.
      */
     public static final String GET_MAP = "Get map";
-    
+    public static final String NEW_STEP = "New step";
+
 }

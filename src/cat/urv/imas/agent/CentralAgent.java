@@ -17,11 +17,15 @@
  */
 package cat.urv.imas.agent;
 
+import java.util.ArrayList;
 import cat.urv.imas.onthology.InitialGameSettings;
+import cat.urv.imas.onthology.InfoAgent;
 import cat.urv.imas.onthology.GameSettings;
+import cat.urv.imas.onthology.MessageContent;
 import cat.urv.imas.gui.GraphicInterface;
 import cat.urv.imas.behaviour.central.RequestResponseBehaviour;
 import cat.urv.imas.map.Cell;
+import cat.urv.imas.map.StreetCell;
 import cat.urv.imas.map.BuildingCell;
 import jade.core.*;
 import jade.domain.*;
@@ -134,7 +138,7 @@ public class CentralAgent extends ImasAgent {
         int num_buildings = buildings.size();
         BuildingCell building;
         if(num_buildings > 0) {
-            int building_id = random.nextInt(num_buildings) + 1;
+            int building_id = random.nextInt(num_buildings);
             building = buildings.get(building_id);
         }
         else {
@@ -157,7 +161,7 @@ public class CentralAgent extends ImasAgent {
             //logging the burning build
             int row = building.getRow();
             int col = building.getCol();
-            log("Building in (" + Integer.toString(row) + "," + Integer.toString(col) + ") is being burned with burnratio " + Integer.toString(fireSpeed));
+            log("Building in (" + Integer.toString(col) + "," + Integer.toString(row) + ") is being burned with burnratio " + Integer.toString(fireSpeed));
         }
     }
 
@@ -177,15 +181,24 @@ public class CentralAgent extends ImasAgent {
     }
 
     /*
+     * Get a threshold probability
+     * trueProbability should be between 0 and 100
+     */
+    protected boolean randomCoin(int trueProbability) {
+        int randomNum = random.nextInt(100) + 1;
+
+        return randomNum < trueProbability;
+    }
+
+    /*
      * Set fires on the city
      * There is a probability that a fire occur in a building
      */
     protected void addNewFire() {
-        int randomNum = random.nextInt(100) + 1;
-        int fireProb = 70; //a probability of add a new fire
+        boolean fireProb = randomCoin(70); //a probability of add a new fire
 
         //add a fire with a fireProb
-        if(randomNum < fireProb) {
+        if(fireProb) {
             log("setting a fire");
             setFire();
         }
@@ -204,6 +217,7 @@ public class CentralAgent extends ImasAgent {
      * +The number of dead citizens. This value is also gathered by the SystemAgent and it will show the number of fire victims. Each building on fire has an amount of citizens in it. This statistic value will be only zero when no citizens have died due to the fires.
      */
     protected void showStatistics() {
+        //TODO
     }
 
     /*
@@ -233,7 +247,7 @@ public class CentralAgent extends ImasAgent {
                 //logging the destroyed building
                 int row = building.getRow();
                 int col = building.getCol();
-                log("Building in (" + Integer.toString(row) + "," + Integer.toString(col) + ") was destroyed by fire. " + deadCitizen + " citizens died in the building");
+                log("Building in (" + Integer.toString(col) + "," + Integer.toString(row) + ") was destroyed by fire. " + deadCitizen + " citizens died in the building");
             }
         }
 
@@ -249,6 +263,27 @@ public class CentralAgent extends ImasAgent {
      *  -If the private vehicle arrives at a street cell from which cannot go straight on, it will have the same probability of turning right or left if both directions are available.
      */
     protected void movePrivateVehicles() {
+        //get the list of all agents
+        Map<AgentType, List<Cell>> agentList = game.getAgentList();
+
+        long randomSeed = game.getSeed();
+
+        List<Cell> privateVehiclesPositions = agentList.get(AgentType.PRIVATE_VEHICLE);
+        List<Cell> newPrivateVehiclesPositions = new ArrayList();
+        //iterate in private vehicules
+        for(Cell privateVehiclePosition : privateVehiclesPositions) {
+            InfoAgent privateVehicle = ((StreetCell)privateVehiclePosition).getAgent();
+
+            boolean tryTurn = randomCoin(20); //a probability of turn right or left
+            try {
+                Cell newPosition = privateVehicle.randomMovement(game.getMap(), privateVehiclePosition, tryTurn);
+                newPrivateVehiclesPositions.add(newPosition);
+            } catch (Exception e) {
+                newPrivateVehiclesPositions.add(privateVehiclePosition);
+                System.err.println("Error moving vehicle");
+            }
+        }
+        agentList.put(AgentType.PRIVATE_VEHICLE, newPrivateVehiclesPositions);
     }
 
     /*
@@ -265,6 +300,20 @@ public class CentralAgent extends ImasAgent {
         int stepDeads = updateDeaths();
         //Show the statistics of the step
         showStatistics();
+        //inform of a new step to coordinator agent
+        informStepCoordinator();
+    }
+
+    /*
+     * Inform that there is a new step to the Coordinator agent
+     */
+    private void informStepCoordinator() {
+        ACLMessage stepMsg = new ACLMessage(ACLMessage.INFORM);
+        stepMsg.clearAllReceiver();
+        stepMsg.addReceiver(this.coordinatorAgent);
+        stepMsg.setLanguage("English");
+        stepMsg.setContent(MessageContent.NEW_STEP);
+        send(stepMsg);
     }
 
     /**
