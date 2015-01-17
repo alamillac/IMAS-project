@@ -27,6 +27,7 @@ import cat.urv.imas.behaviour.central.RequestResponseBehaviour;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.map.StreetCell;
 import cat.urv.imas.map.BuildingCell;
+import cat.urv.imas.utils.MessageType;
 import jade.core.*;
 import jade.domain.*;
 import jade.domain.FIPAAgentManagement.*;
@@ -36,8 +37,11 @@ import jade.wrapper.AgentContainer;
 import java.util.List;
 import java.util.Map;
 import jade.core.behaviours.TickerBehaviour;
+import java.io.IOException;
 import java.util.Random;
 import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 /**
@@ -313,7 +317,12 @@ public class CentralAgent extends ImasAgent {
         stepMsg.clearAllReceiver();
         stepMsg.addReceiver(this.coordinatorAgent);
         stepMsg.setLanguage("English");
-        stepMsg.setContent(MessageContent.NEW_STEP);
+        MessageContent mc = new MessageContent(MessageType.INFORM_NEW_STEP, game);
+        try {
+            stepMsg.setContentObject(mc);
+        } catch (IOException ex) {
+            System.err.println(ex.getMessage());
+        }
         send(stepMsg);
     }
     
