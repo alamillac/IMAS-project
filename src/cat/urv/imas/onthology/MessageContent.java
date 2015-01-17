@@ -27,6 +27,6 @@ public class MessageContent {
      * city information.
      */
     public static final String GET_MAP = "Get map";
-    public static final String NEW_STEP = "New step";
+    public static final String DONE = "I am done";
 
 }

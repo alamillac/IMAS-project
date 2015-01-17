@@ -8,6 +8,7 @@ package cat.urv.imas.agent;
 import static cat.urv.imas.agent.ImasAgent.OWNER;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.onthology.GameSettings;
+import cat.urv.imas.onthology.MessageContent;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.SimpleBehaviour;
@@ -34,14 +35,34 @@ import java.util.logging.Logger;
  */
 public class HospitalCoordinator extends ImasAgent{
 
+    /**
+     * The Coordinator agent with which interacts sharing game settings every
+     * round.
+     */
+    private AID coordinatorAgent;
+
     public HospitalCoordinator() {
         super(AgentType.HOSPITAL_COORDINATOR);
     }
-    
-    
+
+    /*
+     * Inform that it finish the process of the step
+     */
+    private void informStepCoordinator() {
+        ACLMessage stepMsg = new ACLMessage(ACLMessage.INFORM);
+        stepMsg.clearAllReceiver();
+        stepMsg.addReceiver(this.coordinatorAgent);
+        try {
+            stepMsg.setContent(MessageContent.DONE);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        send(stepMsg);
+    }
+
     @Override
     protected void setup() {
-        
+
         /* ** Very Important Line (VIL) ************************************* */
         this.setEnabledO2ACommunication(true, 1);
 
@@ -50,7 +71,7 @@ public class HospitalCoordinator extends ImasAgent{
         sd1.setType(AgentType.HOSPITAL_COORDINATOR.toString());
         sd1.setName(getLocalName());
         sd1.setOwnership(OWNER);
-        
+
         DFAgentDescription dfd = new DFAgentDescription();
         dfd.addServices(sd1);
         dfd.setName(getAID());
@@ -61,7 +82,12 @@ public class HospitalCoordinator extends ImasAgent{
             System.err.println(getLocalName() + " failed registration to DF [ko]. Reason: " + e.getMessage());
             doDelete();
         }
-        
+
+        // search CoordinatorAgent
+        ServiceDescription searchCriterion = new ServiceDescription();
+        searchCriterion.setType(AgentType.COORDINATOR.toString());
+        this.coordinatorAgent = UtilsAgents.searchAgent(this, searchCriterion);
+
         addBehaviour(new CyclicBehaviour(this)
         {
             @Override
@@ -71,25 +97,25 @@ public class HospitalCoordinator extends ImasAgent{
                             System.out.println( " - " +
                                myAgent.getLocalName() + " <- " + "game settings rrecived");
                                //msg.getContent() );
-                    
+
                             try {
                                 GameSettings game = (GameSettings) msg.getContentObject();
                                 ACLMessage initialRequest = new ACLMessage(ACLMessage.INFORM);
                                 initialRequest.clearAllReceiver();
                                 ServiceDescription searchCriterion = new ServiceDescription();
                                 searchCriterion.setType(AgentType.HOSPITAL.toString());
-                               
-                                
+
+
                                 Map<AgentType, List<Cell>> a = game.getAgentList();
                                 List<Cell> HOS = a.get(AgentType.HOSPITAL);
-                                
+
                                 int i = 1;
                                 for (Cell HOS1 : HOS) {
                                     searchCriterion.setName("hospitalAgent" + i);
                                     initialRequest.addReceiver(UtilsAgents.searchAgent(this.myAgent, searchCriterion));
                                     i++;
                                 }
-                                
+
                                try {
 
                                    initialRequest.setContent("Message recive!!");
@@ -99,16 +125,19 @@ public class HospitalCoordinator extends ImasAgent{
                                }
                                this.myAgent.send(initialRequest);
                                //this.send(initialRequest);
-                            
+
                             } catch (UnreadableException ex) {
                                 Logger.getLogger(HospitalCoordinator.class.getName()).log(Level.SEVERE, null, ex);
                             }
-                            
-                            
-                           
+
+
+                        ((HospitalCoordinator)myAgent).informStepCoordinator();
+                        }
+                        else {
+                            block();
                         }
             }
-            
+
         }
         );
     }

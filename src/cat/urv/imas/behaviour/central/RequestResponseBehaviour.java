@@ -95,6 +95,9 @@ public class RequestResponseBehaviour extends AchieveREResponder {
         ACLMessage reply = msg.createReply();
         reply.setPerformative(ACLMessage.INFORM);
 
+        agent.simulationStep(); //update the game
+        agent.updateGUI(); //update gui
+
         try {
             reply.setContentObject(agent.getGame());
         } catch (Exception e) {

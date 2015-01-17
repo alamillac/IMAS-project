@@ -52,20 +52,20 @@ public class HospitalAgent extends ImasAgent{
         }
         
         
-        addBehaviour(new CyclicBehaviour(this)
-        {
-            @Override
-            public void action() {
-                ACLMessage msg= receive();
-                        if (msg!=null){
-                            System.out.println( " - " +myAgent.getLocalName() + " <- " + msg.getContent() );
-                            
-                            
-                        }
-            }
-            
-        }
-        );
+        //addBehaviour(new CyclicBehaviour(this)
+        //{
+        //    @Override
+        //    public void action() {
+        //        ACLMessage msg= receive();
+        //                if (msg!=null){
+        //                    System.out.println( " - " +myAgent.getLocalName() + " <- " + msg.getContent() );
+        //                    
+        //                    
+        //                }
+        //    }
+        //    
+        //}
+        //);
         
         
     }

@@ -19,7 +19,6 @@ package cat.urv.imas.agent;
 
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.behaviour.coordinator.RequesterBehaviour;
-import cat.urv.imas.behaviour.coordinator.StepBehaviour;
 import cat.urv.imas.onthology.MessageContent;
 import jade.core.*;
 import jade.domain.*;
@@ -38,10 +37,72 @@ public class CoordinatorAgent extends ImasAgent {
      * Game settings in use.
      */
     private GameSettings game;
+
     /**
      * Central agent id.
      */
     private AID centralAgent;
+
+    /**
+     * HospitalCoord agent id.
+     */
+    private AID hospitalCoord;
+
+    /**
+     * FiremenCoord agent id.
+     */
+    private AID firemenCoord;
+
+    /*
+     * Actual step
+     */
+    private int numStep = 0;
+
+    /*
+     * indicate if all the jobs related to hospital are done in the step
+     */
+    private boolean hospitalDone;
+
+    /*
+     * indicate if all the jobs related to firemen are done in the step
+     */
+    private boolean firemenDone;
+
+    public int getNumStep() {
+        return numStep;
+    }
+
+    public void setNumStep(int numStep) {
+        this.numStep = numStep;
+    }
+
+    public AID getCentralAgent() {
+        return centralAgent;
+    }
+
+    public AID getHospitalCoordAgent() {
+        return hospitalCoord;
+    }
+
+    public AID getFiremenCoordAgent() {
+        return firemenCoord;
+    }
+
+    public boolean getHospitalDone() {
+        return hospitalDone;
+    }
+
+    public boolean getFiremenDone() {
+        return firemenDone;
+    }
+
+    public void setHospitalDone(boolean done) {
+        hospitalDone = done;
+    }
+
+    public void setFiremenDone(boolean done) {
+        firemenDone = done;
+    }
 
     /**
      * Builds the coordinator agent.
@@ -84,6 +145,16 @@ public class CoordinatorAgent extends ImasAgent {
         this.centralAgent = UtilsAgents.searchAgent(this, searchCriterion);
         // searchAgent is a blocking method, so we will obtain always a correct AID
 
+        // search FiremenCoordinator
+        searchCriterion = new ServiceDescription();
+        searchCriterion.setType(AgentType.FIREMEN_COORDINATOR.toString());
+        this.firemenCoord = UtilsAgents.searchAgent(this, searchCriterion);
+
+        // search HospitalCoordinator
+        searchCriterion = new ServiceDescription();
+        searchCriterion.setType(AgentType.HOSPITAL_COORDINATOR.toString());
+        this.hospitalCoord = UtilsAgents.searchAgent(this, searchCriterion);
+
         /* ********************************************************************/
 
 
@@ -104,12 +175,8 @@ public class CoordinatorAgent extends ImasAgent {
         //we add a behaviour that sends the message and waits for an answer
         this.addBehaviour(new RequesterBehaviour(this, initialRequest));
 
-
         // setup finished. When we receive the last inform, the agent itself will add
         // a behaviour to send/receive actions
-
-        //Behaviour that wait for nextStep
-        this.addBehaviour(new StepBehaviour());
     }
 
     /**

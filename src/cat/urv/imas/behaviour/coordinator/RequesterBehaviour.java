@@ -27,16 +27,17 @@ import cat.urv.imas.agent.HospitalCoordinator;
 import cat.urv.imas.agent.UtilsAgents;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.onthology.MessageContent;
+import cat.urv.imas.behaviour.coordinator.DoneBehaviour;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPANames;
 
 /**
  * Behaviour for the Coordinator agent to deal with AGREE messages.
  * The Coordinator Agent sends a REQUEST for the
- * information of the game settings. The Central Agent sends an AGREE and 
- * then it informs of this information which is stored by the Coordinator Agent. 
- * 
- * NOTE: The game is processed by another behaviour that we add after the 
+ * information of the game settings. The Central Agent sends an AGREE and
+ * then it informs of this information which is stored by the Coordinator Agent.
+ *
+ * NOTE: The game is processed by another behaviour that we add after the
  * INFORM has been processed.
  */
 public class RequesterBehaviour extends AchieveREInitiator {
@@ -67,15 +68,15 @@ public class RequesterBehaviour extends AchieveREInitiator {
         CoordinatorAgent agent = (CoordinatorAgent) this.getAgent();
         agent.log("INFORM received from " + ((AID) msg.getSender()).getLocalName());
         try {
+            //get Game settings
             GameSettings game = (GameSettings) msg.getContentObject();
             agent.setGame(game);
             agent.log(game.getShortString());
-            
-           
 
-            /* ********************************************************************/
 
-            
+            /**********************************************************************/
+            //send Game to the others coordinators
+
             ACLMessage initialRequest = new ACLMessage(ACLMessage.INFORM);
             initialRequest.clearAllReceiver();
             ServiceDescription searchCriterion = new ServiceDescription();
@@ -83,23 +84,24 @@ public class RequesterBehaviour extends AchieveREInitiator {
             initialRequest.addReceiver(UtilsAgents.searchAgent(myAgent, searchCriterion));
             searchCriterion.setType(AgentType.FIREMEN_COORDINATOR.toString());
             initialRequest.addReceiver(UtilsAgents.searchAgent(myAgent, searchCriterion));
-            
+
            // initialRequest.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
-            
-            
-            
+
             try {
-                
+
                 initialRequest.setContentObject(game);
                // log("Request message content:" + initialRequest.getContent());
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            
+
             agent.send(initialRequest);
-            //------------------------------------------------------------------------
-            
-            
+            /**********************************************************************/
+
+            agent.addBehaviour(new DoneBehaviour());
+
+
+
         } catch (Exception e) {
             agent.errorLog("Incorrect content: " + e.toString());
         }

@@ -26,7 +26,7 @@ import java.util.logging.Logger;
  * @author Domen
  */
 public class FiremenCoordinator extends ImasAgent{
-    
+
     /**
      * Game settings in use.
      */
@@ -39,10 +39,25 @@ public class FiremenCoordinator extends ImasAgent{
     public FiremenCoordinator() {
         super(AgentType.FIREMEN_COORDINATOR);
     }
-    
+
+    /*
+     * Inform that it finish the process of the step
+     */
+    private void informStepCoordinator() {
+        ACLMessage stepMsg = new ACLMessage(ACLMessage.INFORM);
+        stepMsg.clearAllReceiver();
+        stepMsg.addReceiver(this.coordinatorAgent);
+        try {
+            stepMsg.setContent(MessageContent.DONE);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        send(stepMsg);
+    }
+
     @Override
     protected void setup() {
-        
+
         /* ** Very Important Line (VIL) ************************************* */
         this.setEnabledO2ACommunication(true, 1);
 
@@ -51,7 +66,7 @@ public class FiremenCoordinator extends ImasAgent{
         sd1.setType(AgentType.FIREMEN_COORDINATOR.toString());
         sd1.setName(getLocalName());
         sd1.setOwnership(OWNER);
-        
+
         DFAgentDescription dfd = new DFAgentDescription();
         dfd.addServices(sd1);
         dfd.setName(getAID());
@@ -62,7 +77,12 @@ public class FiremenCoordinator extends ImasAgent{
             System.err.println(getLocalName() + " failed registration to DF [ko]. Reason: " + e.getMessage());
             doDelete();
         }
-        
+
+        // search CoordinatorAgent
+        ServiceDescription searchCriterion = new ServiceDescription();
+        searchCriterion.setType(AgentType.COORDINATOR.toString());
+        this.coordinatorAgent = UtilsAgents.searchAgent(this, searchCriterion);
+
         addBehaviour(new CyclicBehaviour(this)
         {
             @Override
@@ -72,25 +92,25 @@ public class FiremenCoordinator extends ImasAgent{
                             System.out.println( " - " +
                                myAgent.getLocalName() + " <- " );
                               // msg.getContent() );
-                        
+
                             try {
                                 GameSettings game = (GameSettings) msg.getContentObject();
                                 ACLMessage initialRequest = new ACLMessage(ACLMessage.INFORM);
                                 initialRequest.clearAllReceiver();
                                 ServiceDescription searchCriterion = new ServiceDescription();
                                 searchCriterion.setType(AgentType.FIREMAN.toString());
-                               
-                                
+
+
                                 Map<AgentType, List<Cell>> a = game.getAgentList();
                                 List<Cell> FIR = a.get(AgentType.FIREMAN);
-                                
+
                                 int i = 1;
                                 for (Cell FIR1 : FIR) {
                                     searchCriterion.setName("firemenAgent" + i);
                                     initialRequest.addReceiver(UtilsAgents.searchAgent(this.myAgent, searchCriterion));
                                     i++;
                                 }
-                                
+
                                try {
 
                                    initialRequest.setContent("Message recive!!");
@@ -100,22 +120,26 @@ public class FiremenCoordinator extends ImasAgent{
                                }
                                this.myAgent.send(initialRequest);
                                //this.send(initialRequest);
-                            
+
                             } catch (UnreadableException ex) {
                                 Logger.getLogger(HospitalCoordinator.class.getName()).log(Level.SEVERE, null, ex);
                             }
-                            
+
+                            ((FiremenCoordinator)myAgent).informStepCoordinator();
+                        }
+                        else {
+                            block();
                         }
             }
-            
+
         }
         );
-        
-        //MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchProtocol(InteractionProtocol.FIPA_REQUEST), MessageTemplate.MatchPerformative(ACLMessage.INFORM));
-        //this.addBehaviour(new RequestResponseBehaviour(this, mt));
-        
+
+        MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchProtocol(InteractionProtocol.FIPA_REQUEST), MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+        this.addBehaviour(new RequestResponseBehaviour(this, mt));
+
     }
-    
+
     /**
      * Update the game settings.
      *

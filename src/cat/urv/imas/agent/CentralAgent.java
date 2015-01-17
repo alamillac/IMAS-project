@@ -70,11 +70,6 @@ public class CentralAgent extends ImasAgent {
     private Random random;
 
     /*
-     * Actual step
-     */
-    private int numStep = 0;
-
-    /*
      * Total number of citizens killed by fire
      */
     private int totalDeadCitizens = 0;
@@ -289,7 +284,7 @@ public class CentralAgent extends ImasAgent {
     /*
      * This method is executed on each step
      */
-    protected void simulationStep() {
+    public void simulationStep() {
         //update fires
         updateFiresRatio();
         //add fires
@@ -300,20 +295,6 @@ public class CentralAgent extends ImasAgent {
         int stepDeads = updateDeaths();
         //Show the statistics of the step
         showStatistics();
-        //inform of a new step to coordinator agent
-        informStepCoordinator();
-    }
-
-    /*
-     * Inform that there is a new step to the Coordinator agent
-     */
-    private void informStepCoordinator() {
-        ACLMessage stepMsg = new ACLMessage(ACLMessage.INFORM);
-        stepMsg.clearAllReceiver();
-        stepMsg.addReceiver(this.coordinatorAgent);
-        stepMsg.setLanguage("English");
-        stepMsg.setContent(MessageContent.NEW_STEP);
-        send(stepMsg);
     }
 
     /**
@@ -396,28 +377,8 @@ public class CentralAgent extends ImasAgent {
             i++;
         }
 
-        // Start the simulation. SimulationStep will be executed every 500 milsec
         initRandom(game.getSeed());
-        final int maxSteps = game.getSimulationSteps();
-        log("Simulation start. Running " + Integer.toString(maxSteps) + " steps");
-        addBehaviour(new TickerBehaviour(this, 5000) {
-            protected void onTick() {
-                if(numStep < maxSteps) {
-                    //log the current step
-                    log("Step " + Integer.toString(numStep));
 
-                    simulationStep();
-
-                    //redraw the map
-                    updateGUI();
-                    numStep ++;
-                }
-                else {
-                    removeBehaviour(this);
-                    log("Simulation completed");
-                }
-            }
-        });
     }
 
     public void updateGUI() {
