@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import cat.urv.imas.onthology.InitialGameSettings;
 import cat.urv.imas.onthology.InfoAgent;
 import cat.urv.imas.onthology.GameSettings;
+import cat.urv.imas.onthology.MessageContent;
 import cat.urv.imas.gui.GraphicInterface;
 import cat.urv.imas.behaviour.central.RequestResponseBehaviour;
 import cat.urv.imas.map.Cell;
@@ -299,6 +300,20 @@ public class CentralAgent extends ImasAgent {
         int stepDeads = updateDeaths();
         //Show the statistics of the step
         showStatistics();
+        //inform of a new step to coordinator agent
+        informStepCoordinator();
+    }
+
+    /*
+     * Inform that there is a new step to the Coordinator agent
+     */
+    private void informStepCoordinator() {
+        ACLMessage stepMsg = new ACLMessage(ACLMessage.INFORM);
+        stepMsg.clearAllReceiver();
+        stepMsg.addReceiver(this.coordinatorAgent);
+        stepMsg.setLanguage("English");
+        stepMsg.setContent(MessageContent.NEW_STEP);
+        send(stepMsg);
     }
 
     /**
