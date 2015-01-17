@@ -68,70 +68,45 @@ public class RequesterBehaviour extends AchieveREInitiator {
     protected void handleInform(ACLMessage msg) {
         CoordinatorAgent agent = (CoordinatorAgent) this.getAgent();
         agent.log("INFORM received from " + ((AID) msg.getSender()).getLocalName());
-        
+
+        /**********************************************************************/
+        //Handle msgs
+        //send Game to the others coordinators
+
         try {
-            //get Game settings
-            GameSettings game = (GameSettings) msg.getContentObject();
-            agent.setGame(game);
-            agent.log(game.getShortString());
-           
-            /* ********************************************************************/
-
-            /**********************************************************************/
-            //send Game to the others coordinators
-
-            ACLMessage initialRequest = new ACLMessage(ACLMessage.INFORM);
-            initialRequest.clearAllReceiver();
-            ServiceDescription searchCriterion = new ServiceDescription();
-            searchCriterion.setType(AgentType.HOSPITAL_COORDINATOR.toString());
-            initialRequest.addReceiver(UtilsAgents.searchAgent(myAgent, searchCriterion));
-            searchCriterion.setType(AgentType.FIREMEN_COORDINATOR.toString());
-            initialRequest.addReceiver(UtilsAgents.searchAgent(myAgent, searchCriterion));
-
-           // initialRequest.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
-
-            try {
-
-                initialRequest.setContentObject(game);
-               // log("Request message content:" + initialRequest.getContent());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            agent.send(initialRequest);
-            /**********************************************************************/
-
-            agent.addBehaviour(new DoneBehaviour());
-
-
-
             MessageContent mc = (MessageContent)msg.getContentObject();
             switch(mc.getMessageType()) {
                 case INFORM_CITY_STATUS:
+                    //get Game settings
                     GameSettings game = (GameSettings) msg.getContentObject();
                     agent.setGame(game);
                     agent.log(game.getShortString());
+
                     ACLMessage initialRequest = new ACLMessage(ACLMessage.INFORM);
                     initialRequest.clearAllReceiver();
                     ServiceDescription searchCriterion = new ServiceDescription();
                     searchCriterion.setType(AgentType.HOSPITAL_COORDINATOR.toString());
                     initialRequest.addReceiver(UtilsAgents.searchAgent(myAgent, searchCriterion));
                     searchCriterion.setType(AgentType.FIREMEN_COORDINATOR.toString());
-                    initialRequest.addReceiver(UtilsAgents.searchAgent(myAgent, searchCriterion)); 
+                    initialRequest.addReceiver(UtilsAgents.searchAgent(myAgent, searchCriterion));
                     try {
                         mc = new MessageContent(MessageType.INFORM_CITY_STATUS, game);
                         initialRequest.setContentObject(mc);
                        // log("Request message content:" + initialRequest.getContent());
                     } catch (Exception e) {
                         e.printStackTrace();
-                    }  
+                    }
                     agent.send(initialRequest);
                     break;
             }
+        } catch (Exception e) {
+            agent.errorLog("Incorrect content: " + e.toString());
+            e.printStackTrace();
         }
-        catch(Exception ex) {
-            agent.errorLog("Incorrect content: " + ex.toString());
-        }
+
+        /**********************************************************************/
+
+        agent.addBehaviour(new DoneBehaviour());
 
     }
 

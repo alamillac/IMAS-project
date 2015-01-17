@@ -404,8 +404,6 @@ public class CentralAgent extends ImasAgent {
         // a behaviour to send/receive actions
         createAgents();
 
-       
-
         initRandom(game.getSeed());
     }
 
