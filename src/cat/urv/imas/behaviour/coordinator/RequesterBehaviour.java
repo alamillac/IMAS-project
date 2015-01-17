@@ -72,7 +72,6 @@ public class RequesterBehaviour extends AchieveREInitiator {
             agent.log(game.getShortString());
             
            
-
             /* ********************************************************************/
 
             

@@ -34,6 +34,12 @@ import java.util.logging.Logger;
  */
 public class HospitalCoordinator extends ImasAgent{
 
+    /**
+     * Game settings in use. So we can get city map 
+     */
+    private GameSettings game;
+    
+    
     public HospitalCoordinator() {
         super(AgentType.HOSPITAL_COORDINATOR);
     }
@@ -104,13 +110,29 @@ public class HospitalCoordinator extends ImasAgent{
                                 Logger.getLogger(HospitalCoordinator.class.getName()).log(Level.SEVERE, null, ex);
                             }
                             
-                            
-                           
                         }
             }
             
         }
         );
+    }
+    
+    /**
+     * Update the game settings.
+     *
+     * @param game current game settings.
+     */
+    public void setGame(GameSettings game) {
+        this.game = game;
+    }
+
+    /**
+     * Gets the current game settings.
+     *
+     * @return the current game settings.
+     */
+    public GameSettings getGame() {
+        return this.game;
     }
 
 }

@@ -14,6 +14,7 @@ public class StepBehaviour extends CyclicBehaviour {
 
         if (msg != null) {
             System.out.println("Message received: new Step");
+            
         }
         else {
             block();

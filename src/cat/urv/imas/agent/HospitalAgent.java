@@ -7,6 +7,8 @@ package cat.urv.imas.agent;
 
 import static cat.urv.imas.agent.ImasAgent.OWNER;
 import cat.urv.imas.behaviour.central.RequestResponseBehaviour;
+import cat.urv.imas.map.Cell;
+import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.onthology.MessageContent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.DFService;
@@ -24,6 +26,18 @@ import jade.proto.AchieveREResponder;
  */
 public class HospitalAgent extends ImasAgent{
 
+    /**
+     * Game settings in use. So we can get city map 
+     */
+    private GameSettings game;
+    
+    private Cell hospitalCell;
+    
+    private int stepsToHealth;
+
+    
+    
+    
     public HospitalAgent() {
         super(AgentType.HOSPITAL);
     }
@@ -51,6 +65,11 @@ public class HospitalAgent extends ImasAgent{
             doDelete();
         }
         
+        //Set the arguments we get from central agent
+        Object[] arg = this.getArguments();
+        this.setGame((GameSettings)arg[0]);
+        this.setStepsToHealth((int)arg[1]);
+        this.setHospitalCell((Cell)arg[2]);
         
         addBehaviour(new CyclicBehaviour(this)
         {
@@ -68,6 +87,40 @@ public class HospitalAgent extends ImasAgent{
         );
         
         
+    }
+    
+    /**
+     * Update the game settings.
+     *
+     * @param game current game settings.
+     */
+    public void setGame(GameSettings game) {
+        this.game = game;
+    }
+
+    /**
+     * Gets the current game settings.
+     *
+     * @return the current game settings.
+     */
+    public GameSettings getGame() {
+        return this.game;
+    }
+    
+    public Cell getHospitalCell() {
+        return hospitalCell;
+    }
+
+    public void setHospitalCell(Cell hospitalCell) {
+        this.hospitalCell = hospitalCell;
+    }
+
+    public int getStepsToHealth() {
+        return stepsToHealth;
+    }
+
+    public void setStepsToHealth(int stepsToHealth) {
+        this.stepsToHealth = stepsToHealth;
     }
 }
 
