@@ -159,24 +159,8 @@ public class CoordinatorAgent extends ImasAgent {
         /* ********************************************************************/
 
 
-        ACLMessage initialRequest = new ACLMessage(ACLMessage.REQUEST);
-        initialRequest.clearAllReceiver();
-        initialRequest.addReceiver(this.centralAgent);
-        initialRequest.setProtocol(InteractionProtocol.FIPA_REQUEST);
 
-
-        log("Request message to agent");
-        try {
-            MessageContent mc = new MessageContent(MessageType.REQUEST_CITY_STATUS, null);
-            initialRequest.setContentObject(mc);
-            log("Request message content:" + initialRequest.getContent());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        //we add a behaviour that sends the message and waits for an answer
-        this.addBehaviour(new RequesterBehaviour(this, initialRequest));
-
+        this.requestCtyStatus();
         // setup finished. When we receive the last inform, the agent itself will add
         // a behaviour to send/receive actions
     }
@@ -197,6 +181,55 @@ public class CoordinatorAgent extends ImasAgent {
      */
     public GameSettings getGame() {
         return this.game;
+    }
+    
+    public void InformHospitalCoordinator() {
+        try {
+            ACLMessage initialRequest = new ACLMessage(ACLMessage.INFORM);
+            initialRequest.addReceiver(hospitalCoord);            
+            MessageContent mc = new MessageContent(MessageType.INFORM_CITY_STATUS, game);
+            initialRequest.setContentObject(mc);
+            this.send(initialRequest); 
+           // log("Request message content:" + initialRequest.getContent());
+        } catch (Exception e) {
+            log("Unable to inform HSC");
+            e.printStackTrace();
+        }  
+               
+    }
+    
+    public void InformFirmenCoordinator() {
+        try {
+            ACLMessage initialRequest = new ACLMessage(ACLMessage.INFORM);
+            initialRequest.addReceiver(firemenCoord); 
+            MessageContent mc = new MessageContent(MessageType.INFORM_CITY_STATUS, game);
+            initialRequest.setContentObject(mc);
+            this.send(initialRequest); 
+           // log("Request message content:" + initialRequest.getContent());
+        } catch (Exception e) {
+            log("Unable to inform HSC");
+            e.printStackTrace();
+        }          
+    }
+    
+    public void requestCtyStatus() {
+        ACLMessage initialRequest = new ACLMessage(ACLMessage.REQUEST);
+        initialRequest.clearAllReceiver();
+        initialRequest.addReceiver(this.centralAgent);
+        initialRequest.setProtocol(InteractionProtocol.FIPA_REQUEST);
+
+
+        log("Request message to agent");
+        try {
+            MessageContent mc = new MessageContent(MessageType.REQUEST_CITY_STATUS, null);
+            initialRequest.setContentObject(mc);
+            log("Request message content:" + initialRequest.getContent());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        //we add a behaviour that sends the message and waits for an answer
+        this.addBehaviour(new RequesterBehaviour(this, initialRequest));        
     }
 
 }

@@ -13,7 +13,8 @@ public enum MessageType {
     
     REQUEST_CITY_STATUS(1),
     INFORM_CITY_STATUS(2),
-    INFORM_NEW_STEP (3);
+    INFORM_NEW_STEP (3),
+    DONE(4);
     
     private int value;
 

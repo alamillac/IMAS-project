@@ -10,6 +10,7 @@ import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.behaviour.coordinator.RequesterBehaviour;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.onthology.MessageContent;
+import cat.urv.imas.utils.MessageType;
 import jade.core.*;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.*;
@@ -48,7 +49,7 @@ public class FiremenCoordinator extends ImasAgent{
         stepMsg.clearAllReceiver();
         stepMsg.addReceiver(this.coordinatorAgent);
         try {
-            stepMsg.setContent(MessageContent.DONE);
+            stepMsg.setContentObject(new MessageContent(MessageType.DONE, null));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -87,38 +88,45 @@ public class FiremenCoordinator extends ImasAgent{
         {
             @Override
             public void action() {
-                ACLMessage msg= receive();
+                ACLMessage msg = receive();
                         if (msg!=null){
                             System.out.println( " - " +
                                myAgent.getLocalName() + " <- " );
                               // msg.getContent() );
 
                             try {
-                                GameSettings game = (GameSettings) msg.getContentObject();
-                                ACLMessage initialRequest = new ACLMessage(ACLMessage.INFORM);
-                                initialRequest.clearAllReceiver();
-                                ServiceDescription searchCriterion = new ServiceDescription();
-                                searchCriterion.setType(AgentType.FIREMAN.toString());
+                                MessageContent mc = (MessageContent)msg.getContentObject();
+                                switch(mc.getMessageType()) {
+                                    case INFORM_CITY_STATUS:
+                                        GameSettings game = (GameSettings)mc.getContent();
+                                        ACLMessage initialRequest = new ACLMessage(ACLMessage.INFORM);
+                                        initialRequest.clearAllReceiver();
+                                        ServiceDescription searchCriterion = new ServiceDescription();
+                                        searchCriterion.setType(AgentType.FIREMAN.toString());  
+                                        Map<AgentType, List<Cell>> a = game.getAgentList();
+                                        List<Cell> FIR = a.get(AgentType.FIREMAN);
 
+                                        int i = 1;
+                                        for (Cell FIR1 : FIR) {
+                                            searchCriterion.setName("firemenAgent" + i);
+                                            initialRequest.addReceiver(UtilsAgents.searchAgent(this.myAgent, searchCriterion));
+                                            i++;
+                                        }
 
-                                Map<AgentType, List<Cell>> a = game.getAgentList();
-                                List<Cell> FIR = a.get(AgentType.FIREMAN);
+                                       try {
 
-                                int i = 1;
-                                for (Cell FIR1 : FIR) {
-                                    searchCriterion.setName("firemenAgent" + i);
-                                    initialRequest.addReceiver(UtilsAgents.searchAgent(this.myAgent, searchCriterion));
-                                    i++;
+                                           initialRequest.setContentObject(new MessageContent(MessageType.INFORM_CITY_STATUS,"Message recive!!"));
+                                          // log("Request message content:" + initialRequest.getContent());
+                                       } catch (Exception e) {
+                                           e.printStackTrace();
+                                       }
+                                       this.myAgent.send(initialRequest);                                        
+                                        break;
+                                    default:
+                                        this.block();
                                 }
 
-                               try {
-
-                                   initialRequest.setContent("Message recive!!");
-                                  // log("Request message content:" + initialRequest.getContent());
-                               } catch (Exception e) {
-                                   e.printStackTrace();
-                               }
-                               this.myAgent.send(initialRequest);
+                               
                                //this.send(initialRequest);
 
                             } catch (UnreadableException ex) {

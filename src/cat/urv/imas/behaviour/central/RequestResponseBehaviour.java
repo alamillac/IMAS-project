@@ -102,7 +102,7 @@ public class RequestResponseBehaviour extends AchieveREResponder {
         agent.updateGUI(); //update gui
 
         try {
-            MessageContent mc = new MessageContent(MessageType.INFORM_NEW_STEP, agent.getGame());
+            MessageContent mc = new MessageContent(MessageType.INFORM_CITY_STATUS, agent.getGame());
             reply.setContentObject(mc);
         } catch (Exception e) {
             reply.setPerformative(ACLMessage.FAILURE);

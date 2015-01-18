@@ -78,25 +78,11 @@ public class RequesterBehaviour extends AchieveREInitiator {
             switch(mc.getMessageType()) {
                 case INFORM_CITY_STATUS:
                     //get Game settings
-                    GameSettings game = (GameSettings) msg.getContentObject();
+                    GameSettings game = (GameSettings) mc.getContent();
                     agent.setGame(game);
                     agent.log(game.getShortString());
-
-                    ACLMessage initialRequest = new ACLMessage(ACLMessage.INFORM);
-                    initialRequest.clearAllReceiver();
-                    ServiceDescription searchCriterion = new ServiceDescription();
-                    searchCriterion.setType(AgentType.HOSPITAL_COORDINATOR.toString());
-                    initialRequest.addReceiver(UtilsAgents.searchAgent(myAgent, searchCriterion));
-                    searchCriterion.setType(AgentType.FIREMEN_COORDINATOR.toString());
-                    initialRequest.addReceiver(UtilsAgents.searchAgent(myAgent, searchCriterion));
-                    try {
-                        mc = new MessageContent(MessageType.INFORM_CITY_STATUS, game);
-                        initialRequest.setContentObject(mc);
-                       // log("Request message content:" + initialRequest.getContent());
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    agent.send(initialRequest);
+                    agent.InformFirmenCoordinator();
+                    agent.InformHospitalCoordinator();
                     break;
             }
         } catch (Exception e) {
