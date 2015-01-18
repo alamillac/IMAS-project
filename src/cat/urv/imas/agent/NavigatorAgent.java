@@ -6,6 +6,7 @@
 package cat.urv.imas.agent;
 
 import cat.urv.imas.map.Cell;
+import cat.urv.imas.map.StreetCell;
 import cat.urv.imas.onthology.GameSettings;
 import org.newdawn.slick.util.pathfinding.Path;
 import cat.urv.imas.utils.Utils;
@@ -23,6 +24,8 @@ public abstract class NavigatorAgent extends ImasAgent {
     
     protected Path shortestPath;
     
+    protected int currentStep = -1;
+    
     public NavigatorAgent(AgentType type) {
         super(type);
     }
@@ -33,6 +36,7 @@ public abstract class NavigatorAgent extends ImasAgent {
     
     public float findShortestPath() {
         this.shortestPath = Utils.getShortestPath(this.game.getMap(), agentPosition, targetPosition);
+        this.currentStep = -1;
         return this.shortestPath.getLength();
     }
     
@@ -55,6 +59,32 @@ public abstract class NavigatorAgent extends ImasAgent {
             return 0;
         }
         return this.shortestPath.getLength();
+    }
+    
+    protected boolean moveStep() {
+        if(this.shortestPath == null) {
+            return false;
+        }
+        
+        //Already in the target
+        if(this.currentStep == this.shortestPath.getLength() - 1 || 
+                (this.agentPosition.getRow() == this.targetPosition.getRow() &&
+                this.agentPosition.getCol() == this.targetPosition.getCol())) {
+            
+            return false;
+        }
+        int s = this.currentStep + 1;
+        Path.Step step = shortestPath.getStep(s);
+        StreetCell cell =(StreetCell) this.game.get(step.getX(), step.getY());
+        if(cell.isThereAnAgent()) {
+            this.findShortestPath();
+            return moveStep();
+        }
+        else {
+            this.currentStep = s;
+            this.agentPosition = cell;
+            return true;
+        }
     }
     
     @Override

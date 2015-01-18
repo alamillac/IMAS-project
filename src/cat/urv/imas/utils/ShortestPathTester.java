@@ -21,7 +21,8 @@ public class ShortestPathTester {
         System.out.println(path.getLength());
         
         for(int i = 0; i < path.getLength(); i++) {
-            System.out.print(gs.get(path.getX(i), path.getY(i)).toString());
+            Path.Step step = path.getStep(i);
+            System.out.print(gs.get(step.getX(), step.getY()).toString());
         }
         System.out.println("");
     }
