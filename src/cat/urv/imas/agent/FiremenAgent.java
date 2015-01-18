@@ -28,15 +28,15 @@ public class FiremenAgent extends NavigatorAgent {
 
 
     private AID firemenCoordinator;
-    
-    
+
+
     public FiremenAgent() {
         super(AgentType.FIREMAN);
     }
-    
+
     @Override
     protected void setup() {
-        
+
 
 
         // 1. Register the agent to the DF
@@ -44,7 +44,7 @@ public class FiremenAgent extends NavigatorAgent {
         sd1.setType(AgentType.FIREMAN.toString());
         sd1.setName(getLocalName());
         sd1.setOwnership(OWNER);
-        
+
         DFAgentDescription dfd = new DFAgentDescription();
         dfd.addServices(sd1);
         dfd.setName(getAID());
@@ -55,43 +55,48 @@ public class FiremenAgent extends NavigatorAgent {
             System.err.println(getLocalName() + " failed registration to DF [ko]. Reason: " + e.getMessage());
             doDelete();
         }
-        
+
         addBehaviour(new CyclicBehaviour(this) {
-            
+
             @Override
             public void action() {
                 ACLMessage msg = receive();
-                try {
-                    
-                    AID senderID = msg.getSender();
-                    MessageContent mc = (MessageContent)msg.getContentObject();
-                    if(senderID.equals(firemenCoordinator)) {
-                        switch(msg.getPerformative()) {
-                            case ACLMessage.PROPOSE :
-                                break;
-                            case ACLMessage.INFORM :
-                                switch(mc.getMessageType()) {
-                                    case INFORM_CITY_STATUS:
+                if (msg != null) {
+                    try {
 
-                                        break;
-                                }                                
-                                break;
+                        AID senderID = msg.getSender();
+                        MessageContent mc = (MessageContent)msg.getContentObject();
+                        if(senderID.equals(firemenCoordinator)) {
+                            switch(msg.getPerformative()) {
+                                case ACLMessage.PROPOSE :
+                                    break;
+                                case ACLMessage.INFORM :
+                                    switch(mc.getMessageType()) {
+                                        case INFORM_CITY_STATUS:
+
+                                            break;
+                                    }
+                                    break;
+                            }
+
+
                         }
-                        
+                    } catch (UnreadableException ex) {
+                        Logger.getLogger(FiremenAgent.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    catch(NullPointerException npex) {
+                        //npex.printStackTrace();
+                    }
+                    catch(Exception ex) {
 
                     }
-                } catch (UnreadableException ex) {
-                    Logger.getLogger(FiremenAgent.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                catch(NullPointerException npex) {
-                    //npex.printStackTrace();
+                else {
+                    block();
                 }
-                catch(Exception ex) {
-                    
-                } 
             }
         });
-        
+
         //addBehaviour(new CyclicBehaviour(this)
         //{
         //    @Override
@@ -103,12 +108,12 @@ public class FiremenAgent extends NavigatorAgent {
         //                       msg.getContent() );
         //                }
         //    }
-        //    
+        //
         //}
         //);
-        
+
        // addBehaviour(new AchieveREResponder );
-       
+
     }
 
 
@@ -119,5 +124,5 @@ public class FiremenAgent extends NavigatorAgent {
     public void setFiremenCoordinator(AID firemenCoordinator) {
         this.firemenCoordinator = firemenCoordinator;
     }
-    
+
 }
