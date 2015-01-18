@@ -43,6 +43,9 @@ public class DoneBehaviour extends CyclicBehaviour {
 
 
                 if(agent.getHospitalDone() && agent.getFiremenDone()) {
+                    agent.setHospitalDone(false);
+                    agent.setFiremenDone(false);
+
                     /**********************************************************************/
                     //Set a newBehaviour until steps are done
                     //This message will be send to central agent asking to update the game
