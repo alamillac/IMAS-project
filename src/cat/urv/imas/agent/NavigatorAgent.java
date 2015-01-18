@@ -7,7 +7,8 @@ package cat.urv.imas.agent;
 
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.onthology.GameSettings;
-
+import org.newdawn.slick.util.pathfinding.Path;
+import cat.urv.imas.utils.Utils;
 /**
  *
  * @author mhj
@@ -20,6 +21,8 @@ public abstract class NavigatorAgent extends ImasAgent {
     
     protected Cell targetPosition;
     
+    protected Path shortestPath;
+    
     public NavigatorAgent(AgentType type) {
         super(type);
     }
@@ -28,8 +31,30 @@ public abstract class NavigatorAgent extends ImasAgent {
         return false;
     }
     
-    protected float findShortestPath() {
-        return 0;
+    public float findShortestPath() {
+        this.shortestPath = Utils.getShortestPath(this.game.getMap(), agentPosition, targetPosition);
+        return this.shortestPath.getLength();
+    }
+    
+    public Cell[] getPath() {
+        if(this.shortestPath == null) {
+            return null;
+        }
+        
+        int n = shortestPath.getLength();
+        Cell[] path = new Cell[n];
+        for(int i = 0; i < n; i++) {
+            path[i] = game.get(shortestPath.getX(i), shortestPath.getY(i));
+        }
+        return path;
+    } 
+    
+    
+    public float getPathCost() {
+        if(this.shortestPath == null) {
+            return 0;
+        }
+        return this.shortestPath.getLength();
     }
     
     @Override
