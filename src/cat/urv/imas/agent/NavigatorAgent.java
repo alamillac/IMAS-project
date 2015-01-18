@@ -7,6 +7,11 @@ package cat.urv.imas.agent;
 
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.onthology.GameSettings;
+import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.lang.acl.ACLMessage;
+import cat.urv.imas.onthology.MessageContent;
+import cat.urv.imas.utils.MessageType;
+import jade.core.AID;
 
 /**
  *
@@ -15,30 +20,34 @@ import cat.urv.imas.onthology.GameSettings;
 public abstract class NavigatorAgent extends ImasAgent {
 
     protected GameSettings game;
-    
+
     protected Cell agentPosition;
-    
+
     protected Cell targetPosition;
-    
+
+    /**
+     * Central agent id.
+     */
+    private AID centralAgent;
+
     public NavigatorAgent(AgentType type) {
         super(type);
     }
-    
+
     protected boolean checkCollisions() {
         return false;
     }
-    
+
     protected float findShortestPath() {
         return 0;
     }
-    
+
     @Override
     protected void setup() {
-        
-        this.setEnabledO2ACommunication(true, 1);
-        
-         Object[] args = this.getArguments();
-         this.agentPosition = (Cell)args[0];
+        // search CentralAgent
+        ServiceDescription searchCriterion = new ServiceDescription();
+        searchCriterion.setType(AgentType.CENTRAL.toString());
+        this.centralAgent = UtilsAgents.searchAgent(this, searchCriterion);
     }
 
     public void setGame(GameSettings game) {
@@ -64,7 +73,19 @@ public abstract class NavigatorAgent extends ImasAgent {
     public Cell getTargetPosition() {
         return targetPosition;
     }
-    
-    
-    
+
+    protected void ask_moveToCentralAgent(Cell newPosition) {
+        try {
+            ACLMessage moveMsg = new ACLMessage(ACLMessage.REQUEST);
+            moveMsg.addReceiver(centralAgent);
+            MessageContent mc = new MessageContent(MessageType.REQUEST_MOVE, null);
+            moveMsg.setContentObject(mc);
+            this.send(moveMsg);
+           // log("Request message content:" + initialRequest.getContent());
+        } catch (Exception e) {
+            log("Unable to move");
+            e.printStackTrace();
+        }
+    }
+
 }
