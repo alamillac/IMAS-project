@@ -7,6 +7,7 @@ package cat.urv.imas.utils;
 
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.map.CellType;
+import cat.urv.imas.map.StreetCell;
 import org.newdawn.slick.util.pathfinding.AStarPathFinder;
 import org.newdawn.slick.util.pathfinding.Path;
 import org.newdawn.slick.util.pathfinding.PathFindingContext;
@@ -40,7 +41,10 @@ public final class Utils {
 
             @Override
             public boolean blocked(PathFindingContext pfc, int x, int y) {
-                return map[x][y].getCellType() != CellType.STREET;
+                if(map[x][y].getCellType() == CellType.STREET) {
+                    return ((StreetCell)map[x][y]).isThereAnAgent();
+                }                
+                return true;
             }
 
             @Override
