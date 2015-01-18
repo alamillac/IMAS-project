@@ -89,51 +89,54 @@ public class FiremenCoordinator extends ImasAgent{
             @Override
             public void action() {
                 ACLMessage msg = receive();
-                        if (msg!=null){
+                        if (msg != null) {
                             System.out.println( " - " +
                                myAgent.getLocalName() + " <- " );
                               // msg.getContent() );
+                            AID sender = msg.getSender();
+                            if(sender.equals(coordinatorAgent)) {
+                                try {
+                                    MessageContent mc = (MessageContent)msg.getContentObject();
+                                    switch(mc.getMessageType()) {
+                                        case INFORM_CITY_STATUS:
 
-                            try {
-                                MessageContent mc = (MessageContent)msg.getContentObject();
-                                switch(mc.getMessageType()) {
-                                    case INFORM_CITY_STATUS:
-                                        GameSettings game = (GameSettings)mc.getContent();
-                                        ACLMessage initialRequest = new ACLMessage(ACLMessage.INFORM);
-                                        initialRequest.clearAllReceiver();
-                                        ServiceDescription searchCriterion = new ServiceDescription();
-                                        searchCriterion.setType(AgentType.FIREMAN.toString());  
-                                        Map<AgentType, List<Cell>> a = game.getAgentList();
-                                        List<Cell> FIR = a.get(AgentType.FIREMAN);
+                                            GameSettings game = (GameSettings)mc.getContent();
+                                            ACLMessage initialRequest = new ACLMessage(ACLMessage.INFORM);
+                                            initialRequest.clearAllReceiver();
+                                            ServiceDescription searchCriterion = new ServiceDescription();
+                                            searchCriterion.setType(AgentType.FIREMAN.toString());  
+                                            Map<AgentType, List<Cell>> a = game.getAgentList();
+                                            List<Cell> FIR = a.get(AgentType.FIREMAN);
 
-                                        int i = 1;
-                                        for (Cell FIR1 : FIR) {
-                                            searchCriterion.setName("firemenAgent" + i);
-                                            initialRequest.addReceiver(UtilsAgents.searchAgent(this.myAgent, searchCriterion));
-                                            i++;
-                                        }
+                                            int i = 1;
+                                            for (Cell FIR1 : FIR) {
+                                                searchCriterion.setName("firemenAgent" + i);
+                                                initialRequest.addReceiver(UtilsAgents.searchAgent(this.myAgent, searchCriterion));
+                                                i++;
+                                            }
 
-                                       try {
+                                           try {
 
-                                           initialRequest.setContentObject(new MessageContent(MessageType.INFORM_CITY_STATUS,"Message recive!!"));
-                                          // log("Request message content:" + initialRequest.getContent());
-                                       } catch (Exception e) {
-                                           e.printStackTrace();
-                                       }
-                                       this.myAgent.send(initialRequest);                                        
-                                        break;
-                                    default:
-                                        this.block();
+                                               initialRequest.setContentObject(new MessageContent(MessageType.INFORM_CITY_STATUS, "Message recive!!"));
+                                              // log("Request message content:" + initialRequest.getContent());
+                                           } catch (Exception e) {
+                                               e.printStackTrace();
+                                           }
+                                           this.myAgent.send(initialRequest);                                        
+                                            break;
+                                        default:
+                                            this.block();
+                                    }
+
+
+                                   //this.send(initialRequest);
+
+                                } catch (UnreadableException ex) {
+                                    Logger.getLogger(HospitalCoordinator.class.getName()).log(Level.SEVERE, null, ex);
                                 }
 
-                               
-                               //this.send(initialRequest);
-
-                            } catch (UnreadableException ex) {
-                                Logger.getLogger(HospitalCoordinator.class.getName()).log(Level.SEVERE, null, ex);
+                                ((FiremenCoordinator)myAgent).informStepCoordinator();                                
                             }
-
-                            ((FiremenCoordinator)myAgent).informStepCoordinator();
                         }
                         else {
                             block();

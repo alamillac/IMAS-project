@@ -19,7 +19,7 @@ import jade.proto.AchieveREResponder;
  *
  * @author Domen
  */
-public class FiremenAgent extends ImasAgent{
+public class FiremenAgent extends ImasAgent {
 
     /**
      * Game settings in use. So we can get city map 
