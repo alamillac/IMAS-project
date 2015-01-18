@@ -66,7 +66,7 @@ public class AmbulanceAgent extends ImasAgent{
         this.setGame((GameSettings)arg[0]);
         this.setAmbulanceLoadingSpeed((int)arg[1]);
         this.setPeoplePerAmbulance((int)arg[2]);
-        this.setAmbulanceCell((Cell)arg[2]);
+        this.setAmbulanceCell((Cell)arg[3]);
         
     }
     
