@@ -55,7 +55,7 @@ public class FiremenCoordinator extends ImasAgent{
         }
         send(stepMsg);
     }
-
+    
     @Override
     protected void setup() {
 
