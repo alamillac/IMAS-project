@@ -81,8 +81,8 @@ public class RequesterBehaviour extends AchieveREInitiator {
                     GameSettings game = (GameSettings) mc.getContent();
                     agent.setGame(game);
                     agent.log(game.getShortString());
-                    agent.InformFirmenCoordinator();
-                    agent.InformHospitalCoordinator();
+                    agent.informFirmenCoordinator();
+                    agent.informHospitalCoordinator();
                     break;
             }
         } catch (Exception e) {

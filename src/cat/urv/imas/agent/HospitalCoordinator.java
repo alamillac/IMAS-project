@@ -100,7 +100,7 @@ public class HospitalCoordinator extends ImasAgent{
         {
             @Override
             public void action() {
-                ACLMessage msg= receive();
+                ACLMessage msg = receive();
                         if (msg!=null){
                             System.out.println( " - " +
                                myAgent.getLocalName() + " <- " + "game settings rrecived");
@@ -127,7 +127,7 @@ public class HospitalCoordinator extends ImasAgent{
 
                                        try {
 
-                                           initialRequest.setContentObject(new MessageContent(MessageType.INFORM_CITY_STATUS, "Message recive!!"));
+                                           initialRequest.setContentObject(new MessageContent(MessageType.INFORM_CITY_STATUS, game));
                                           // log("Request message content:" + initialRequest.getContent());
                                        } catch (Exception e) {
                                            e.printStackTrace();

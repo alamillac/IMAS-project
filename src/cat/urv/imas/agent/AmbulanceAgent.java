@@ -17,12 +17,9 @@ import jade.domain.FIPAException;
  *
  * @author Domen
  */
-public class AmbulanceAgent extends ImasAgent{
+public class AmbulanceAgent extends NavigatorAgent {
 
-    /**
-     * Game settings in use. So we can get city map 
-     */
-    private GameSettings game;
+
     
     private int ambulanceLoadingSpeed;
 
@@ -63,30 +60,13 @@ public class AmbulanceAgent extends ImasAgent{
         
         //Set the arguments we get from central agent
         Object[] arg = this.getArguments();
-        this.setGame((GameSettings)arg[0]);
-        this.setAmbulanceLoadingSpeed((int)arg[1]);
-        this.setPeoplePerAmbulance((int)arg[2]);
-        this.setAmbulanceCell((Cell)arg[3]);
+        //this.setGame((GameSettings)arg[1]);
+        this.setAmbulanceLoadingSpeed((int)arg[2]);
+        this.setPeoplePerAmbulance((int)arg[3]);
         
     }
     
-    /**
-     * Update the game settings.
-     *
-     * @param game current game settings.
-     */
-    public void setGame(GameSettings game) {
-        this.game = game;
-    }
 
-    /**
-     * Gets the current game settings.
-     *
-     * @return the current game settings.
-     */
-    public GameSettings getGame() {
-        return this.game;
-    }
     
     public int getAmbulanceLoadingSpeed() {
         return ambulanceLoadingSpeed;
@@ -104,13 +84,6 @@ public class AmbulanceAgent extends ImasAgent{
         this.peoplePerAmbulance = peoplePerAmbulance;
     }
 
-    public Cell getAmbulanceCell() {
-        return ambulanceCell;
-    }
-
-    public void setAmbulanceCell(Cell ambulanceCell) {
-        this.ambulanceCell = ambulanceCell;
-    }
 
     public AID getHospitalAgent() {
         return hospitalAgent;

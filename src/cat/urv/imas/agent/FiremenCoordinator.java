@@ -117,7 +117,7 @@ public class FiremenCoordinator extends ImasAgent{
 
                                            try {
 
-                                               initialRequest.setContentObject(new MessageContent(MessageType.INFORM_CITY_STATUS, "Message recive!!"));
+                                               initialRequest.setContentObject(new MessageContent(MessageType.INFORM_CITY_STATUS, game));
                                               // log("Request message content:" + initialRequest.getContent());
                                            } catch (Exception e) {
                                                e.printStackTrace();

@@ -314,7 +314,7 @@ public class CentralAgent extends ImasAgent {
         //properties for hospital
         Object[] property = new Object[3];
         property[0] = this.game;
-        property[1]= this.game.getStepsToHealth();
+        property[1] = this.game.getStepsToHealth();
         
         int i = 1;
         for (Cell HOS1 : HOS) {
@@ -325,24 +325,26 @@ public class CentralAgent extends ImasAgent {
 
         //properties for ambulance 
         property = new Object[4];
-        property[0] = this.game;
-        property[1]= this.game.getAmbulanceLoadingSpeed();
-        property[2]= this.game.getPeoplePerAmbulance();
+        //we do not need to send the city info directly from the central to ambulances agents,
+        //property[1] = this.game;
+        property[2]= this.game.getAmbulanceLoadingSpeed();
+        property[3]= this.game.getPeoplePerAmbulance();
         
         i = 1;
         for (Cell AMB1 : AMB) {
-            property[3]= AMB1;
+            
+            property[0]= AMB1;
             UtilsAgents.createAgent(ac, "ambulanceAgent" + i, "cat.urv.imas.agent.AmbulanceAgent", property);
             i++;
         }
 
         //properties for fireman 
         property = new Object[2];
-        
-        property[0] = this.game;
+        //we do not need to send the city info directly from the central to firemen agents,
+        //property[0] = this.game;
         i = 1;
         for (Cell FIR1 : FIR) {
-            property[1]= FIR1;
+            property[0]= FIR1;
             UtilsAgents.createAgent(ac, "firemenAgent" + i, "cat.urv.imas.agent.FiremenAgent", null);
             i++;
         }

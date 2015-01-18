@@ -183,7 +183,7 @@ public class CoordinatorAgent extends ImasAgent {
         return this.game;
     }
     
-    public void InformHospitalCoordinator() {
+    public void informHospitalCoordinator() {
         try {
             ACLMessage initialRequest = new ACLMessage(ACLMessage.INFORM);
             initialRequest.addReceiver(hospitalCoord);            
@@ -198,7 +198,7 @@ public class CoordinatorAgent extends ImasAgent {
                
     }
     
-    public void InformFirmenCoordinator() {
+    public void informFirmenCoordinator() {
         try {
             ACLMessage initialRequest = new ACLMessage(ACLMessage.INFORM);
             initialRequest.addReceiver(firemenCoord); 
