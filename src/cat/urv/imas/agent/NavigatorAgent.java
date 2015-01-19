@@ -14,9 +14,9 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import cat.urv.imas.onthology.MessageContent;
 import cat.urv.imas.utils.MessageType;
-import cat.urv.imas.behaviour.navigator.MovementBehaviour;
 import cat.urv.imas.map.CellType;
 import cat.urv.imas.utils.NavigatorStatus;
+
 import jade.core.AID;
 import jade.domain.FIPANames.InteractionProtocol;
 
@@ -37,10 +37,6 @@ public abstract class NavigatorAgent extends ImasAgent {
     protected int currentStep = -1;
 
     protected NavigatorStatus status;
-    /**
-     * Central agent id.
-     */
-    private AID centralAgent;
 
     public NavigatorAgent(AgentType type) {
         super(type);
@@ -130,15 +126,11 @@ public abstract class NavigatorAgent extends ImasAgent {
 
     @Override
     protected void setup() {
-        // search CentralAgent
-        ServiceDescription searchCriterion = new ServiceDescription();
-        searchCriterion.setType(AgentType.CENTRAL.toString());
-        this.centralAgent = UtilsAgents.searchAgent(this, searchCriterion);
-        
+        /* ** Very Important Line (VIL) ************************************* */
         this.setEnabledO2ACommunication(true, 1);
-        
+
          Object[] args = this.getArguments();
-         
+
          this.agentPosition = (Cell)args[0];
          this.game = (GameSettings)args[1];
     }
@@ -167,36 +159,4 @@ public abstract class NavigatorAgent extends ImasAgent {
         return targetPosition;
     }
 
-    /*
-     * The agent will try to move from one position to another in the map.
-     * The central agent responce  with agree or refuse.
-     */
-    protected void askMoveToCentralAgent(Cell newPosition) {
-        ACLMessage moveMsg = new ACLMessage(ACLMessage.REQUEST);
-        moveMsg.clearAllReceiver();
-        moveMsg.addReceiver(centralAgent);
-        moveMsg.setProtocol(InteractionProtocol.FIPA_REQUEST);
-        Cell[] movement = {agentPosition, newPosition};
-
-        try {
-            MessageContent mc = new MessageContent(MessageType.REQUEST_MOVE, movement);
-            moveMsg.setContentObject(mc);
-            this.send(moveMsg);
-           // log("Request message content:" + initialRequest.getContent());
-        } catch (Exception e) {
-            log("Unable to move");
-            e.printStackTrace();
-        }
-
-        //we add a behaviour that sends the message and waits for an answer
-        this.addBehaviour(new MovementBehaviour(this, moveMsg));
-    }
-
-    public NavigatorStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(NavigatorStatus status) {
-        this.status = status;
-    }
 }

@@ -35,9 +35,6 @@ public class AmbulanceAgent extends NavigatorAgent {
     protected void setup() {
         super.setup();
 
-         /* ** Very Important Line (VIL) ************************************* */
-        this.setEnabledO2ACommunication(true, 1);
-
         // 1. Register the agent to the DF
         ServiceDescription sd1 = new ServiceDescription();
         sd1.setType(AgentType.AMBULANCE.toString());
