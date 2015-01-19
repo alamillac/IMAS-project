@@ -158,8 +158,6 @@ public class CoordinatorAgent extends ImasAgent {
 
         /* ********************************************************************/
 
-
-
         this.requestCtyStatus();
         // setup finished. When we receive the last inform, the agent itself will add
         // a behaviour to send/receive actions
@@ -207,7 +205,7 @@ public class CoordinatorAgent extends ImasAgent {
             this.send(initialRequest); 
            // log("Request message content:" + initialRequest.getContent());
         } catch (Exception e) {
-            log("Unable to inform HSC");
+            log("Unable to inform FMC");
             e.printStackTrace();
         }          
     }
@@ -217,7 +215,6 @@ public class CoordinatorAgent extends ImasAgent {
         initialRequest.clearAllReceiver();
         initialRequest.addReceiver(this.centralAgent);
         initialRequest.setProtocol(InteractionProtocol.FIPA_REQUEST);
-
 
         log("Request message to agent");
         try {

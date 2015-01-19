@@ -11,6 +11,7 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import cat.urv.imas.onthology.MessageContent;
 import cat.urv.imas.utils.MessageType;
+import cat.urv.imas.behaviour.navigator.MovementBehaviour;
 import jade.core.AID;
 
 /**
@@ -74,11 +75,19 @@ public abstract class NavigatorAgent extends ImasAgent {
         return targetPosition;
     }
 
-    protected void ask_moveToCentralAgent(Cell newPosition) {
+    /*
+     * The agent will try to move from one position to another in the map.
+     * The central agent responce  with agree or refuse.
+     */
+    protected void askMoveToCentralAgent(Cell newPosition) {
+        ACLMessage moveMsg = new ACLMessage(ACLMessage.REQUEST);
+        moveMsg.clearAllReceiver();
+        moveMsg.addReceiver(centralAgent);
+        moveMsg.setProtocol(InteractionProtocol.FIPA_REQUEST);
+        Cell[] movement = {agentPosition, newPosition};
+
         try {
-            ACLMessage moveMsg = new ACLMessage(ACLMessage.REQUEST);
-            moveMsg.addReceiver(centralAgent);
-            MessageContent mc = new MessageContent(MessageType.REQUEST_MOVE, null);
+            MessageContent mc = new MessageContent(MessageType.REQUEST_MOVE, movement);
             moveMsg.setContentObject(mc);
             this.send(moveMsg);
            // log("Request message content:" + initialRequest.getContent());
@@ -86,6 +95,9 @@ public abstract class NavigatorAgent extends ImasAgent {
             log("Unable to move");
             e.printStackTrace();
         }
+
+        //we add a behaviour that sends the message and waits for an answer
+        this.addBehaviour(new MovementBehaviour(this, moveMsg));
     }
 
 }
