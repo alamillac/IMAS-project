@@ -9,6 +9,7 @@ import cat.urv.imas.map.BuildingCell;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.onthology.MessageContent;
+import cat.urv.imas.utils.MessageType;
  import jade.core.*;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.DFService;
@@ -18,6 +19,7 @@ import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
 import jade.proto.AchieveREResponder;
+import java.util.ArrayList;
 
 import java.util.Map;
 import java.util.Map.Entry;
@@ -44,8 +46,6 @@ public class FiremenAgent extends NavigatorAgent {
     
     @Override
     protected void setup() {
-
-
         super.setup();
 
         // 1. Register the agent to the DF
@@ -94,15 +94,8 @@ public class FiremenAgent extends NavigatorAgent {
                                 case ACLMessage.PROPOSE :
                                     break;
                                 case ACLMessage.CFP :
-                                    Map<BuildingCell, Integer> tmp = (Map<BuildingCell, Integer>)mc.getContent();
-                                    BuildingCell bc;
+                                    responseOnAuction((Map<BuildingCell, Integer>)mc.getContent());
                                     
-                                    for(Entry<BuildingCell, Integer> entry : tmp.entrySet()) // we new fires to temporary map 
-                                    {
-                                        
-                                         bc = entry.getKey();
-                                    }
-                                    log("NEW FIREEEEEEEEEEEE");
                                     
                                     break;
                                 case ACLMessage.INFORM :
@@ -151,6 +144,32 @@ public class FiremenAgent extends NavigatorAgent {
 
     }
 
+    private void responseOnAuction(Map<BuildingCell, Integer> tmp)
+    {
+        BuildingCell bc;
+        List<Float> steps = new ArrayList<>();
+        for(Entry<BuildingCell, Integer> entry : tmp.entrySet()) // we new fires to temporary map 
+        {
+             bc = entry.getKey();
+             steps.add(findShortestPath((Cell)bc));
+        }
+        
+        ACLMessage response = new ACLMessage(ACLMessage.PROPOSE);
+        response.clearAllReceiver();
+        response.addReceiver(firemenCoordinator);
+
+       try {
+
+           //response.setContentObject(new MessageContent(MessageType.AUCTION_PROPOSAL, findShortestPath(agentPosition)));
+          // log("Request message content:" + initialRequest.getContent());
+       } catch (Exception e) {
+           e.printStackTrace();
+       }
+       
+       this.send(response);
+        
+        
+    }
 
     public AID getFiremenCoordinator() {
         return firemenCoordinator;

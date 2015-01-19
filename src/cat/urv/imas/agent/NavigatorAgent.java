@@ -10,6 +10,15 @@ import cat.urv.imas.map.StreetCell;
 import cat.urv.imas.onthology.GameSettings;
 import org.newdawn.slick.util.pathfinding.Path;
 import cat.urv.imas.utils.Utils;
+import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.lang.acl.ACLMessage;
+import cat.urv.imas.onthology.MessageContent;
+import cat.urv.imas.utils.MessageType;
+import cat.urv.imas.behaviour.navigator.MovementBehaviour;
+import cat.urv.imas.utils.NavigatorStatus;
+import jade.core.AID;
+import jade.domain.FIPANames.InteractionProtocol;
+
 /**
  *
  * @author mhj
@@ -17,60 +26,72 @@ import cat.urv.imas.utils.Utils;
 public abstract class NavigatorAgent extends ImasAgent {
 
     protected GameSettings game;
-    
+
     protected Cell agentPosition;
-    
+
     protected Cell targetPosition;
-    
+
     protected Path shortestPath;
-    
+
     protected int currentStep = -1;
-    
+
+    protected NavigatorStatus status;
+    /**
+     * Central agent id.
+     */
+    private AID centralAgent;
+
     public NavigatorAgent(AgentType type) {
         super(type);
     }
-    
+
     protected boolean checkCollisions() {
         return false;
     }
-    
-    public float findShortestPath() {
-        this.shortestPath = Utils.getShortestPath(this.game.getMap(), agentPosition, targetPosition);
+
+    public float findShortestPath(Cell tPosition) {
+        this.shortestPath = Utils.getShortestPath(this.game.getMap(), this.agentPosition, tPosition);
         this.currentStep = -1;
-        return this.shortestPath.getLength();
+        if(this.shortestPath == null)
+            return -1;
+        return this.shortestPath.getLength();        
     }
     
+    public float findShortestPath() {
+        return findShortestPath(this.targetPosition);
+    }
+
     public Cell[] getPath() {
         if(this.shortestPath == null) {
             return null;
         }
-        
+
         int n = shortestPath.getLength();
         Cell[] path = new Cell[n];
         for(int i = 0; i < n; i++) {
             path[i] = game.get(shortestPath.getX(i), shortestPath.getY(i));
         }
         return path;
-    } 
-    
-    
+    }
+
+
     public float getPathCost() {
         if(this.shortestPath == null) {
-            return 0;
+            return -1;
         }
         return this.shortestPath.getLength();
     }
-    
+
     protected boolean moveStep() {
         if(this.shortestPath == null) {
             return false;
         }
-        
+
         //Already in the target
-        if(this.currentStep == this.shortestPath.getLength() - 1 || 
+        if(this.currentStep == this.shortestPath.getLength() - 1 ||
                 (this.agentPosition.getRow() == this.targetPosition.getRow() &&
                 this.agentPosition.getCol() == this.targetPosition.getCol())) {
-            
+
             return false;
         }
         int s = this.currentStep + 1;
@@ -86,9 +107,13 @@ public abstract class NavigatorAgent extends ImasAgent {
             return true;
         }
     }
-    
+
     @Override
     protected void setup() {
+        // search CentralAgent
+        ServiceDescription searchCriterion = new ServiceDescription();
+        searchCriterion.setType(AgentType.CENTRAL.toString());
+        this.centralAgent = UtilsAgents.searchAgent(this, searchCriterion);
         
         this.setEnabledO2ACommunication(true, 1);
         
@@ -121,7 +146,37 @@ public abstract class NavigatorAgent extends ImasAgent {
     public Cell getTargetPosition() {
         return targetPosition;
     }
-    
-    
-    
+
+    /*
+     * The agent will try to move from one position to another in the map.
+     * The central agent responce  with agree or refuse.
+     */
+    protected void askMoveToCentralAgent(Cell newPosition) {
+        ACLMessage moveMsg = new ACLMessage(ACLMessage.REQUEST);
+        moveMsg.clearAllReceiver();
+        moveMsg.addReceiver(centralAgent);
+        moveMsg.setProtocol(InteractionProtocol.FIPA_REQUEST);
+        Cell[] movement = {agentPosition, newPosition};
+
+        try {
+            MessageContent mc = new MessageContent(MessageType.REQUEST_MOVE, movement);
+            moveMsg.setContentObject(mc);
+            this.send(moveMsg);
+           // log("Request message content:" + initialRequest.getContent());
+        } catch (Exception e) {
+            log("Unable to move");
+            e.printStackTrace();
+        }
+
+        //we add a behaviour that sends the message and waits for an answer
+        this.addBehaviour(new MovementBehaviour(this, moveMsg));
+    }
+
+    public NavigatorStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(NavigatorStatus status) {
+        this.status = status;
+    }
 }

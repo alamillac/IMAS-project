@@ -15,7 +15,7 @@ import org.newdawn.slick.util.pathfinding.Path;
  */
 public class ShortestPathTester {
     public static void main(String[] args) {
-        GameSettings gs = InitialGameSettings.load("game.evaluation.firstdate.settings");
+        GameSettings gs = InitialGameSettings.load("game.settings");
         Path path = Utils.getShortestPath(gs.getMap(), gs.get(1, 4), gs.get(1, 10));
         
         System.out.println(path.getLength());

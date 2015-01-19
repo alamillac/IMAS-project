@@ -105,6 +105,7 @@ public class FiremenCoordinator extends ImasAgent{
                                myAgent.getLocalName() + " <- " );
                               // msg.getContent() );
                             AID sender = msg.getSender();
+                            
                             if(sender.equals(coordinatorAgent)) {
                                 try {
                                     MessageContent mc = (MessageContent)msg.getContentObject();
@@ -151,6 +152,10 @@ public class FiremenCoordinator extends ImasAgent{
                                 }
 
                                 ((FiremenCoordinator)myAgent).informStepCoordinator();                                
+                            }
+                            if(msg.getPerformative()==ACLMessage.PROPOSE)
+                            {
+                                String protocol = msg.getProtocol();
                             }
                         }
                         else {

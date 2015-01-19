@@ -9,22 +9,14 @@ package cat.urv.imas.utils;
  *
  * @author mhj
  */
-public enum MessageType {
+public enum NavigatorStatus {
+    FREE(0),
+    FIRST_WINNER(1),
+    IN_JOB(2);
+    
+    private final int value;
 
-    REQUEST_CITY_STATUS(1),
-    INFORM_CITY_STATUS(2),
-    INFORM_NEW_STEP (3),
-    DONE(4),
-    REQUEST_MOVE(5),
-    NEW_FIRES(6),
-    AUCTION_PROPOSAL(7);
-
-    private int value;
-
-    private MessageType(int value) {
+    private NavigatorStatus(int value) {
         this.value = value;
-    }
-
-
-
+    }    
 }
