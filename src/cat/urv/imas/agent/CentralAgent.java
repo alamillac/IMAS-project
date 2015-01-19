@@ -322,45 +322,50 @@ public class CentralAgent extends ImasAgent {
         List<Cell> FIR = a.get(AgentType.FIREMAN);
         List<Cell> AMB = a.get(AgentType.AMBULANCE);
         List<Cell> HOS = a.get(AgentType.HOSPITAL);
-
-
-        //properties for hospital
-        Object[] property = new Object[3];
+       //properties for hospital
+        /*Object[] property = new Object[3];
         property[0] = this.game;
         property[1] = this.game.getStepsToHealth();
 
+        */
         int i = 1;
         for (Cell HOS1 : HOS) {
-            property[2]= HOS1;
-            UtilsAgents.createAgent(ac, "hospitalAgent" + i, "cat.urv.imas.agent.HospitalAgent", property);
+            //here was the mistake, take in your account that poperty now is one object,
+            //and you assign this object to all agents, when the last agent created,
+            //the position value for all agents will be same
+            //property[2]= HOS1;
+            UtilsAgents.createAgent(ac, "hospitalAgent" + i, "cat.urv.imas.agent.HospitalAgent", new Object[] {this.game, this.game.getStepsToHealth(), HOS1});
             i++;
         }
 
+
+        //properties for ambulance 
+        /*
         //properties for ambulance
         property = new Object[4];
 
         property[1] = this.game;
         property[2]= this.game.getAmbulanceLoadingSpeed();
         property[3]= this.game.getPeoplePerAmbulance();
+        */
 
         i = 1;
         for (Cell AMB1 : AMB) {
 
-            property[0]= AMB1;
-            UtilsAgents.createAgent(ac, "ambulanceAgent" + i, "cat.urv.imas.agent.AmbulanceAgent", property);
+            
+            //property[0]= AMB1;
+            UtilsAgents.createAgent(ac, "ambulanceAgent" + i, "cat.urv.imas.agent.AmbulanceAgent", new Object[]{ AMB1, this.game, this.game.getAmbulanceLoadingSpeed(), this.game.getPeoplePerAmbulance() });
+
             i++;
         }
 
-        //properties for fireman
-        property = new Object[2];
-
-        property[1] = this.game;
         i = 1;
         for (Cell FIR1 : FIR) {
-            property[0]= FIR1;
-            UtilsAgents.createAgent(ac, "firemenAgent" + i, "cat.urv.imas.agent.FiremenAgent", property);
+            
+            //property[0]= FIR1;
+            UtilsAgents.createAgent(ac, "firemenAgent" + i, "cat.urv.imas.agent.FiremenAgent", new Object[]{ FIR1, this.game });
             i++;
-        }
+        }        
     }
 
     /**
