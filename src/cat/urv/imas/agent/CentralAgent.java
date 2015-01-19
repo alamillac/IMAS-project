@@ -378,7 +378,7 @@ public class CentralAgent extends ImasAgent {
         }
 
         // 2. Load game settings.
-        this.game = InitialGameSettings.load("game.evaluation.firstdate.settings");
+        this.game = InitialGameSettings.load("game.settings");
         log("Initial configuration settings loaded");
 
         // 3. Load GUI

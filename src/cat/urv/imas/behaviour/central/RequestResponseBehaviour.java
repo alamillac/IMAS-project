@@ -100,11 +100,6 @@ public class RequestResponseBehaviour extends AchieveREResponder {
                 case REQUEST_CITY_STATUS:
                     reply = sendGameStatus(msg);
                     break;
-                case REQUEST_MOVE:
-                    //analyse if the movement is valid
-                    reply = msg.createReply();
-                    reply.setPerformative(ACLMessage.AGREE);
-                    break;
             }
         } catch (Exception e) {
             reply.setPerformative(ACLMessage.FAILURE);
