@@ -14,6 +14,8 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import cat.urv.imas.onthology.MessageContent;
 import cat.urv.imas.utils.MessageType;
+import cat.urv.imas.utils.NavigatorStatus;
+
 import jade.core.AID;
 import jade.domain.FIPANames.InteractionProtocol;
 
@@ -33,6 +35,8 @@ public abstract class NavigatorAgent extends ImasAgent {
 
     protected int currentStep = -1;
 
+    protected NavigatorStatus status;
+
     public NavigatorAgent(AgentType type) {
         super(type);
     }
@@ -41,10 +45,16 @@ public abstract class NavigatorAgent extends ImasAgent {
         return false;
     }
 
-    public float findShortestPath() {
-        this.shortestPath = Utils.getShortestPath(this.game.getMap(), agentPosition, targetPosition);
+    public float findShortestPath(Cell tPosition) {
+        this.shortestPath = Utils.getShortestPath(this.game.getMap(), this.agentPosition, tPosition);
         this.currentStep = -1;
-        return this.shortestPath.getLength();
+        if(this.shortestPath == null)
+            return -1;
+        return this.shortestPath.getLength();        
+    }
+    
+    public float findShortestPath() {
+        return findShortestPath(this.targetPosition);
     }
 
     public Cell[] getPath() {
@@ -63,7 +73,7 @@ public abstract class NavigatorAgent extends ImasAgent {
 
     public float getPathCost() {
         if(this.shortestPath == null) {
-            return 0;
+            return -1;
         }
         return this.shortestPath.getLength();
     }
