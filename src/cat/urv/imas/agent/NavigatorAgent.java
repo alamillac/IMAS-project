@@ -93,7 +93,9 @@ public abstract class NavigatorAgent extends ImasAgent {
         this.setEnabledO2ACommunication(true, 1);
         
          Object[] args = this.getArguments();
+         
          this.agentPosition = (Cell)args[0];
+         this.game = (GameSettings)args[1];
     }
 
     public void setGame(GameSettings game) {
