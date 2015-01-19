@@ -10,6 +10,9 @@ import cat.urv.imas.map.Cell;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.onthology.MessageContent;
 import cat.urv.imas.utils.MessageType;
+import cat.urv.imas.utils.NavigatorStatus;
+import com.sun.javafx.image.impl.IntArgb;
+import com.sun.jmx.snmp.BerDecoder;
  import jade.core.*;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.DFService;
@@ -96,7 +99,6 @@ public class FiremenAgent extends NavigatorAgent {
                                 case ACLMessage.CFP :
                                     responseOnAuction((Map<BuildingCell, Integer>)mc.getContent());
                                     
-                                    
                                     break;
                                 case ACLMessage.INFORM :
                                     switch(mc.getMessageType()) {
@@ -147,11 +149,18 @@ public class FiremenAgent extends NavigatorAgent {
     private void responseOnAuction(Map<BuildingCell, Integer> tmp)
     {
         BuildingCell bc;
-        List<Float> steps = new ArrayList<>();
+        List<Integer> steps = new ArrayList<>();
         for(Entry<BuildingCell, Integer> entry : tmp.entrySet()) // we new fires to temporary map 
         {
+            if(this.status!=NavigatorStatus.FIRST_WINNER) //if agent is not first winner 
+            {
              bc = entry.getKey();
-             steps.add(findShortestPath((Cell)bc));
+             steps.add((int)findShortestPath((Cell)bc));
+            }else
+            {
+              steps.add(Integer.MAX_VALUE);  
+            }
+                 
         }
         
         ACLMessage response = new ACLMessage(ACLMessage.PROPOSE);
@@ -159,8 +168,9 @@ public class FiremenAgent extends NavigatorAgent {
         response.addReceiver(firemenCoordinator);
 
        try {
-
-           //response.setContentObject(new MessageContent(MessageType.AUCTION_PROPOSAL, findShortestPath(agentPosition)));
+               response.setContentObject(new MessageContent(MessageType.AUCTION_PROPOSAL, steps));
+           
+           
           // log("Request message content:" + initialRequest.getContent());
        } catch (Exception e) {
            e.printStackTrace();
