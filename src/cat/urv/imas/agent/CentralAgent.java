@@ -199,12 +199,15 @@ public class CentralAgent extends ImasAgent {
      */
     protected Map<BuildingCell, Integer> addNewFire() {
         boolean fireProb = randomCoin(70); //a probability of add a new fire
-        Map<BuildingCell, Integer> newFire = null;
+        Map<BuildingCell, Integer> newFire;
 
         //add a fire with a fireProb
         if(fireProb) {
             log("setting a fire");
             newFire = setFire();
+        }
+        else {
+            newFire = new HashMap();
         }
 
         return newFire;

@@ -180,6 +180,7 @@ public class CoordinatorAgent extends ImasAgent {
     }
 
     public void setNewFires(Map<BuildingCell, Integer> newFires) {
+        log("FIRES: "+Integer.toString(newFires.size()));
         this.newFires = newFires;
     }
 
