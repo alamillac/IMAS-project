@@ -325,8 +325,8 @@ public class CentralAgent extends ImasAgent {
 
         //properties for ambulance 
         property = new Object[4];
-        //we do not need to send the city info directly from the central to ambulances agents,
-        //property[1] = this.game;
+        
+        property[1] = this.game;
         property[2]= this.game.getAmbulanceLoadingSpeed();
         property[3]= this.game.getPeoplePerAmbulance();
         
@@ -340,12 +340,12 @@ public class CentralAgent extends ImasAgent {
 
         //properties for fireman 
         property = new Object[2];
-        //we do not need to send the city info directly from the central to firemen agents,
-        //property[0] = this.game;
+        
+        property[1] = this.game;
         i = 1;
         for (Cell FIR1 : FIR) {
             property[0]= FIR1;
-            UtilsAgents.createAgent(ac, "firemenAgent" + i, "cat.urv.imas.agent.FiremenAgent", null);
+            UtilsAgents.createAgent(ac, "firemenAgent" + i, "cat.urv.imas.agent.FiremenAgent", property);
             i++;
         }
     }
@@ -378,7 +378,7 @@ public class CentralAgent extends ImasAgent {
         }
 
         // 2. Load game settings.
-        this.game = InitialGameSettings.load("game.settings");
+        this.game = InitialGameSettings.load("game.evaluation.firstdate.settings");
         log("Initial configuration settings loaded");
 
         // 3. Load GUI

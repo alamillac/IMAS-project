@@ -17,6 +17,8 @@ import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
 import jade.proto.AchieveREResponder;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 /**
@@ -37,8 +39,6 @@ public class FiremenAgent extends NavigatorAgent {
     @Override
     protected void setup() {
         super.setup();
-
-        this.setEnabledO2ACommunication(true, 1);
 
         // 1. Register the agent to the DF
         ServiceDescription sd1 = new ServiceDescription();
@@ -61,6 +61,14 @@ public class FiremenAgent extends NavigatorAgent {
 
             @Override
             public void action() {
+                //Check if the game agent is shared?
+                Map<AgentType, List<Cell>> agentList = game.getAgentList();
+                List<Cell> privateVehiclesPositions = agentList.get(AgentType.PRIVATE_VEHICLE);
+                for(Cell privateVehiclePosition : privateVehiclesPositions) {
+                    System.out.println("Check : " + privateVehiclePosition);
+                }
+                System.out.println("=====================================================");
+                //
                 ACLMessage msg = receive();
                 if (msg != null) {
                     try {

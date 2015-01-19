@@ -107,6 +107,13 @@ public abstract class NavigatorAgent extends ImasAgent {
         ServiceDescription searchCriterion = new ServiceDescription();
         searchCriterion.setType(AgentType.CENTRAL.toString());
         this.centralAgent = UtilsAgents.searchAgent(this, searchCriterion);
+        
+        this.setEnabledO2ACommunication(true, 1);
+        
+         Object[] args = this.getArguments();
+         
+         this.agentPosition = (Cell)args[0];
+         this.game = (GameSettings)args[1];
     }
 
     public void setGame(GameSettings game) {
