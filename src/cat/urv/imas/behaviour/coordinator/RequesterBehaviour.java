@@ -17,6 +17,7 @@
  */
 package cat.urv.imas.behaviour.coordinator;
 
+import java.util.Map;
 import cat.urv.imas.agent.AgentType;
 import jade.core.AID;
 import jade.lang.acl.ACLMessage;
@@ -31,6 +32,7 @@ import cat.urv.imas.behaviour.coordinator.DoneBehaviour;
 import cat.urv.imas.utils.MessageType;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPANames;
+import cat.urv.imas.map.BuildingCell;
 
 /**
  * Behaviour for the Coordinator agent to deal with AGREE messages.
@@ -78,8 +80,13 @@ public class RequesterBehaviour extends AchieveREInitiator {
             switch(mc.getMessageType()) {
                 case INFORM_CITY_STATUS:
                     //get Game settings
-                    GameSettings game = (GameSettings) mc.getContent();
-                    agent.setGame(game);
+                    Map<String, Object> stepData = (Map<String, Object>) mc.getContent();
+
+                    GameSettings game = (GameSettings) stepData.get("game");  //delete this?
+                    Map<BuildingCell, Integer> newFires = (Map<BuildingCell, Integer>) stepData.get("new_fires");
+
+                    agent.setNewFires(newFires);
+                    agent.setGame(game); //this could be deleted?
                     agent.log(game.getShortString());
                     agent.informFirmenCoordinator();
                     agent.informHospitalCoordinator();

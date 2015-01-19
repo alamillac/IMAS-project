@@ -118,11 +118,13 @@ public class RequestResponseBehaviour extends AchieveREResponder {
         ACLMessage reply = msg.createReply();
         reply.setPerformative(ACLMessage.INFORM);
 
-        agent.simulationStep(); //update the game
+        Map<String, Object> stepData = agent.simulationStep(); //update the game
+        stepData.put("game", agent.getGame());
+
         agent.updateGUI(); //update gui
 
         try {
-            MessageContent mc = new MessageContent(MessageType.INFORM_CITY_STATUS, agent.getGame());
+            MessageContent mc = new MessageContent(MessageType.INFORM_CITY_STATUS, stepData);
             reply.setContentObject(mc);
         } catch (Exception e) {
             reply.setPerformative(ACLMessage.FAILURE);

@@ -42,6 +42,7 @@ import java.util.Random;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.HashMap;
 
 
 /**
@@ -167,7 +168,8 @@ public class CentralAgent extends ImasAgent {
     /*
      * Set a fire in a random building
      */
-    protected void setFire() {
+    protected Map<BuildingCell, Integer> setFire() {
+        Map<BuildingCell, Integer> newFire = new HashMap();
         //get a building to put fire on it
         int fireSpeed = game.getFireSpeed();
         BuildingCell building = getRandomBuilding();
@@ -176,8 +178,9 @@ public class CentralAgent extends ImasAgent {
         if(building != null && ! building.isOnFire()) {
             Map<BuildingCell, Integer> firemap = game.getFireList();
             firemap.put(building, fireSpeed);
-            
+            newFire.put(building, fireSpeed);
         }
+        return newFire;
     }
 
     /*
@@ -194,14 +197,17 @@ public class CentralAgent extends ImasAgent {
      * Set fires on the city
      * There is a probability that a fire occur in a building
      */
-    protected void addNewFire() {
+    protected Map<BuildingCell, Integer> addNewFire() {
         boolean fireProb = randomCoin(70); //a probability of add a new fire
+        Map<BuildingCell, Integer> newFire = null;
 
         //add a fire with a fireProb
         if(fireProb) {
             log("setting a fire");
-            setFire();
+            newFire = setFire();
         }
+
+        return newFire;
     }
 
     /*
@@ -289,19 +295,23 @@ public class CentralAgent extends ImasAgent {
     /*
      * This method is executed on each step
      */
-    public void simulationStep() {
+    public Map<String, Object> simulationStep() {
         //update fires
         updateFiresRatio();
         //add fires
-        addNewFire();
+        Map<BuildingCell, Integer> newFire = addNewFire();
         //vehicles Movement
         movePrivateVehicles();
         //kill all the citizens of destroyed buildings
         int stepDeads = updateDeaths();
         //Show the statistics of the step
         showStatistics();
+        Map<String, Object> stepData = new HashMap();
+        stepData.put("new_fires", newFire);
+
+        return stepData;
     }
-    
+
     private void createAgents()
     {
         Map<AgentType, List<Cell>> a = this.game.getAgentList();
@@ -310,12 +320,12 @@ public class CentralAgent extends ImasAgent {
         List<Cell> AMB = a.get(AgentType.AMBULANCE);
         List<Cell> HOS = a.get(AgentType.HOSPITAL);
 
-        
+
         //properties for hospital
         Object[] property = new Object[3];
         property[0] = this.game;
         property[1] = this.game.getStepsToHealth();
-        
+
         int i = 1;
         for (Cell HOS1 : HOS) {
             property[2]= HOS1;
@@ -323,24 +333,24 @@ public class CentralAgent extends ImasAgent {
             i++;
         }
 
-        //properties for ambulance 
+        //properties for ambulance
         property = new Object[4];
-        
+
         property[1] = this.game;
         property[2]= this.game.getAmbulanceLoadingSpeed();
         property[3]= this.game.getPeoplePerAmbulance();
-        
+
         i = 1;
         for (Cell AMB1 : AMB) {
-            
+
             property[0]= AMB1;
             UtilsAgents.createAgent(ac, "ambulanceAgent" + i, "cat.urv.imas.agent.AmbulanceAgent", property);
             i++;
         }
 
-        //properties for fireman 
+        //properties for fireman
         property = new Object[2];
-        
+
         property[1] = this.game;
         i = 1;
         for (Cell FIR1 : FIR) {

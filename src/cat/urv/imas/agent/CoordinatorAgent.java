@@ -17,10 +17,12 @@
  */
 package cat.urv.imas.agent;
 
+import java.util.Map;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.behaviour.coordinator.RequesterBehaviour;
 import cat.urv.imas.onthology.MessageContent;
 import cat.urv.imas.utils.MessageType;
+import cat.urv.imas.map.BuildingCell;
 import jade.core.*;
 import jade.domain.*;
 import jade.domain.FIPAAgentManagement.*;
@@ -68,6 +70,11 @@ public class CoordinatorAgent extends ImasAgent {
      * indicate if all the jobs related to firemen are done in the step
      */
     private boolean firemenDone;
+
+    /*
+     * New fires on step
+     */
+    public Map<BuildingCell, Integer> newFires;
 
     public int getNumStep() {
         return numStep;
@@ -172,6 +179,10 @@ public class CoordinatorAgent extends ImasAgent {
         this.game = game;
     }
 
+    public void setNewFires(Map<BuildingCell, Integer> newFires) {
+        this.newFires = newFires;
+    }
+
     /**
      * Gets the current game settings.
      *
@@ -180,37 +191,37 @@ public class CoordinatorAgent extends ImasAgent {
     public GameSettings getGame() {
         return this.game;
     }
-    
+
     public void informHospitalCoordinator() {
         try {
             ACLMessage initialRequest = new ACLMessage(ACLMessage.INFORM);
-            initialRequest.addReceiver(hospitalCoord);            
+            initialRequest.addReceiver(hospitalCoord);
             MessageContent mc = new MessageContent(MessageType.INFORM_CITY_STATUS, game);
             initialRequest.setContentObject(mc);
-            this.send(initialRequest); 
+            this.send(initialRequest);
            // log("Request message content:" + initialRequest.getContent());
         } catch (Exception e) {
             log("Unable to inform HSC");
             e.printStackTrace();
-        }  
-               
+        }
+
     }
-    
+
     public void informFirmenCoordinator() {
         try {
-            
+
             ACLMessage initialRequest = new ACLMessage(ACLMessage.INFORM);
-            initialRequest.addReceiver(firemenCoord); 
+            initialRequest.addReceiver(firemenCoord);
             MessageContent mc = new MessageContent(MessageType.INFORM_CITY_STATUS, game);
             initialRequest.setContentObject(mc);
-            this.send(initialRequest); 
+            this.send(initialRequest);
            // log("Request message content:" + initialRequest.getContent());
         } catch (Exception e) {
             log("Unable to inform FMC");
             e.printStackTrace();
-        }          
+        }
     }
-    
+
     public void requestCtyStatus() {
         ACLMessage initialRequest = new ACLMessage(ACLMessage.REQUEST);
         initialRequest.clearAllReceiver();
@@ -227,7 +238,7 @@ public class CoordinatorAgent extends ImasAgent {
         }
 
         //we add a behaviour that sends the message and waits for an answer
-        this.addBehaviour(new RequesterBehaviour(this, initialRequest));        
+        this.addBehaviour(new RequesterBehaviour(this, initialRequest));
     }
 
 }
