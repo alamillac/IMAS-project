@@ -5,6 +5,7 @@
  */
 package cat.urv.imas.agent;
 import static cat.urv.imas.agent.ImasAgent.OWNER;
+import cat.urv.imas.map.BuildingCell;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.onthology.MessageContent;
@@ -17,6 +18,8 @@ import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
 import jade.proto.AchieveREResponder;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 /**
@@ -33,7 +36,7 @@ public class FiremenAgent extends NavigatorAgent {
     public FiremenAgent() {
         super(AgentType.FIREMAN);
     }
-
+    
     @Override
     protected void setup() {
 
@@ -55,6 +58,12 @@ public class FiremenAgent extends NavigatorAgent {
             System.err.println(getLocalName() + " failed registration to DF [ko]. Reason: " + e.getMessage());
             doDelete();
         }
+        
+        
+        // search CoordinatorAgent
+        ServiceDescription searchCriterion = new ServiceDescription();
+        searchCriterion.setType(AgentType.FIREMEN_COORDINATOR.toString());
+        this.firemenCoordinator = UtilsAgents.searchAgent(this, searchCriterion);
 
         addBehaviour(new CyclicBehaviour(this) {
 
@@ -70,10 +79,21 @@ public class FiremenAgent extends NavigatorAgent {
                             switch(msg.getPerformative()) {
                                 case ACLMessage.PROPOSE :
                                     break;
+                                case ACLMessage.CFP :
+                                    Map<BuildingCell, Integer> tmp = (Map<BuildingCell, Integer>)mc.getContent();
+                                    BuildingCell bc;
+                                    
+                                    for(Entry<BuildingCell, Integer> entry : tmp.entrySet()) // we new fires to temporary map 
+                                    {
+                                         bc = entry.getKey();
+                                    }
+                                    log("NEW FIREEEEEEEEEEEE");
+                                    
+                                    break;
                                 case ACLMessage.INFORM :
                                     switch(mc.getMessageType()) {
                                         case INFORM_CITY_STATUS:
-
+                                            log("INFORMMMMM");
                                             break;
                                     }
                                     break;

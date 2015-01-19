@@ -8,6 +8,7 @@ package cat.urv.imas.agent;
 import cat.urv.imas.behaviour.firemenCoordinator.RequestResponseBehaviour;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.behaviour.coordinator.RequesterBehaviour;
+import cat.urv.imas.map.BuildingCell;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.onthology.MessageContent;
 import cat.urv.imas.utils.MessageType;
@@ -17,8 +18,14 @@ import jade.domain.*;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPANames.InteractionProtocol;
 import jade.lang.acl.*;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -40,6 +47,8 @@ public class FiremenCoordinator extends ImasAgent{
     public FiremenCoordinator() {
         super(AgentType.FIREMEN_COORDINATOR);
     }
+    
+    private Map<BuildingCell, Integer> firesTakenCareOf;
 
     /*
      * Inform that it finish the process of the step
@@ -78,7 +87,9 @@ public class FiremenCoordinator extends ImasAgent{
             System.err.println(getLocalName() + " failed registration to DF [ko]. Reason: " + e.getMessage());
             doDelete();
         }
-
+        
+        firesTakenCareOf = new HashMap<>();
+        
         // search CoordinatorAgent
         ServiceDescription searchCriterion = new ServiceDescription();
         searchCriterion.setType(AgentType.COORDINATOR.toString());
@@ -107,7 +118,7 @@ public class FiremenCoordinator extends ImasAgent{
                                             searchCriterion.setType(AgentType.FIREMAN.toString());  
                                             Map<AgentType, List<Cell>> a = game.getAgentList();
                                             List<Cell> FIR = a.get(AgentType.FIREMAN);
-
+                                            setGame(game); //we need to set game, so we can get fires (for now) 
                                             int i = 1;
                                             for (Cell FIR1 : FIR) {
                                                 searchCriterion.setName("firemenAgent" + i);
@@ -122,7 +133,11 @@ public class FiremenCoordinator extends ImasAgent{
                                            } catch (Exception e) {
                                                e.printStackTrace();
                                            }
+                                           newFires(); // don't forget to delete
                                            this.myAgent.send(initialRequest);                                        
+                                            break;
+                                        case NEW_FIRES:
+                                            newFires(); //we will send location of new fire or fires
                                             break;
                                         default:
                                             this.block();
@@ -151,6 +166,45 @@ public class FiremenCoordinator extends ImasAgent{
 
     }
 
+    private void newFires()
+    {
+        Map<BuildingCell, Integer> temporaryFiremap = new HashMap<>();
+        List<BuildingCell> tmpList = new ArrayList<>();
+        
+        for(Entry<BuildingCell, Integer> entry : this.game.getFireList().entrySet()) // we new fires to temporary map 
+        {
+            if(!firesTakenCareOf.containsKey(entry.getKey()))
+            {
+                tmpList.add(entry.getKey());
+                temporaryFiremap.put(entry.getKey(), entry.getValue());
+            }
+        }
+        
+        ACLMessage initialRequest = new ACLMessage(ACLMessage.CFP);
+        initialRequest.setSender(getAID());
+        initialRequest.clearAllReceiver();
+        ServiceDescription searchCriterion = new ServiceDescription();
+        searchCriterion.setType(AgentType.FIREMAN.toString());  
+        Map<AgentType, List<Cell>> a = game.getAgentList();
+        List<Cell> FIR = a.get(AgentType.FIREMAN);
+        int i = 1;
+        for (Cell FIR1 : FIR) {
+            searchCriterion.setName("firemenAgent" + i);
+            initialRequest.addReceiver(UtilsAgents.searchAgent(this, searchCriterion));
+            i++;
+        }
+
+       try {
+
+           initialRequest.setContentObject(new MessageContent(MessageType.NEW_FIRES, temporaryFiremap));
+          // log("Request message content:" + initialRequest.getContent());
+       } catch (Exception e) {
+           e.printStackTrace();
+       }
+       
+       this.send(initialRequest); 
+        
+    }
     /**
      * Update the game settings.
      *
@@ -168,4 +222,13 @@ public class FiremenCoordinator extends ImasAgent{
     public GameSettings getGame() {
         return this.game;
     }
+    
+    public Map<BuildingCell, Integer> getFiresTakenCareOf() {
+        return firesTakenCareOf;
+    }
+
+    public void setFiresTakenCareOf(Map<BuildingCell, Integer> firesTakenCareOf) {
+        this.firesTakenCareOf = firesTakenCareOf;
+    }
+
 }

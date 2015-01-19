@@ -200,6 +200,7 @@ public class CoordinatorAgent extends ImasAgent {
     
     public void informFirmenCoordinator() {
         try {
+            
             ACLMessage initialRequest = new ACLMessage(ACLMessage.INFORM);
             initialRequest.addReceiver(firemenCoord); 
             MessageContent mc = new MessageContent(MessageType.INFORM_CITY_STATUS, game);
