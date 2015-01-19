@@ -94,11 +94,11 @@ public class FiremenAgent extends NavigatorAgent {
                         MessageContent mc = (MessageContent)msg.getContentObject();
                         if(senderID.equals(firemenCoordinator)) {
                             switch(msg.getPerformative()) {
-                                case ACLMessage.PROPOSE :
+                                case ACLMessage.REQUEST :
+                                    mc = (MessageContent)msg.getContentObject();//order from coordinator
                                     break;
                                 case ACLMessage.CFP :
                                     responseOnAuction((Map<BuildingCell, Integer>)mc.getContent());
-                                    
                                     break;
                                 case ACLMessage.INFORM :
                                     switch(mc.getMessageType()) {

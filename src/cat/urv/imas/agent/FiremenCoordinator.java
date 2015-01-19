@@ -7,6 +7,7 @@ package cat.urv.imas.agent;
 
 import cat.urv.imas.behaviour.firemenCoordinator.RequestResponseBehaviour;
 import cat.urv.imas.onthology.GameSettings;
+import java.util.Iterator;
 import cat.urv.imas.behaviour.coordinator.RequesterBehaviour;
 import cat.urv.imas.map.BuildingCell;
 import cat.urv.imas.map.Cell;
@@ -18,10 +19,15 @@ import jade.domain.*;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPANames.InteractionProtocol;
 import jade.lang.acl.*;
+import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -45,6 +51,8 @@ public class FiremenCoordinator extends ImasAgent{
     private AID coordinatorAgent;
     
     private int numberOfFiremen; 
+    
+    private Map<BuildingCell, Integer> newFires;
     
     private Map<AID, List<Integer>> firemanResponses;  
 
@@ -193,6 +201,56 @@ public class FiremenCoordinator extends ImasAgent{
     
     private void selectWinners()
     {
+        ACLMessage initialRequest = new ACLMessage(ACLMessage.REQUEST);
+        initialRequest.setSender(getAID());
+        initialRequest.clearAllReceiver();
+        Object[] dataToFiremen = new Object[2];
+        
+        int i = 0;
+        Map<AID, Integer> temporaryMap; //we create new map for each fire
+        for(BuildingCell fireCell : this.newFires.keySet()) // we new fires to temporary map 
+        {
+            temporaryMap = new HashMap<>();
+            for(Entry<AID, List<Integer>> entry : this.firemanResponses.entrySet()) // we new fires to temporary map 
+            {
+                temporaryMap.put(entry.getKey(), entry.getValue().get(i));
+            }
+            
+            temporaryMap = (HashMap)sortByValues((HashMap) temporaryMap); // we sort the values
+           
+            int j = 0;
+            int equalFires = 0;
+            if((firesTakenCareOf.isEmpty())&&(newFires.size()==1))//first time we send all firemen to same fire 
+            {
+                equalFires = numberOfFiremen;
+            }else
+            {
+                equalFires = (int)((firesTakenCareOf.size()+newFires.size())/numberOfFiremen);
+            }
+            for(AID entry : temporaryMap.keySet()) 
+            {
+                if(j<equalFires) // we only sent limited number of fires 
+                {
+                   dataToFiremen[0] = fireCell; // we send fire cell
+                   dataToFiremen[1] = j;        // and on which winner they were
+
+                   initialRequest.addReceiver(entry); 
+                      try {
+                          initialRequest.setContentObject(new MessageContent(MessageType.GO_TO_THIS_FIRE, dataToFiremen));
+                      } catch (IOException ex) {
+                          Logger.getLogger(FiremenCoordinator.class.getName()).log(Level.SEVERE, null, ex);
+                      }
+
+                   send(initialRequest);
+                   initialRequest.clearAllReceiver();
+                   j++;
+                }
+            }
+            i++;
+        }
+        
+        
+        
         int a = 2;
         firemanResponses= new HashMap<>();
     }
@@ -200,7 +258,7 @@ public class FiremenCoordinator extends ImasAgent{
     
     private void newFires()
     {
-        Map<BuildingCell, Integer> temporaryFiremap = new HashMap<>();
+        newFires = new HashMap<>();
         List<BuildingCell> tmpList = new ArrayList<>();
         
         for(Entry<BuildingCell, Integer> entry : this.game.getFireList().entrySet()) // we new fires to temporary map 
@@ -208,7 +266,7 @@ public class FiremenCoordinator extends ImasAgent{
             if(!firesTakenCareOf.containsKey(entry.getKey()))
             {
                 tmpList.add(entry.getKey());
-                temporaryFiremap.put(entry.getKey(), entry.getValue());
+                newFires.put(entry.getKey(), entry.getValue());
             }
         }
         
@@ -228,7 +286,7 @@ public class FiremenCoordinator extends ImasAgent{
 
        try {
 
-           initialRequest.setContentObject(new MessageContent(MessageType.NEW_FIRES, temporaryFiremap));
+           initialRequest.setContentObject(new MessageContent(MessageType.NEW_FIRES, newFires));
           // log("Request message content:" + initialRequest.getContent());
        } catch (Exception e) {
            e.printStackTrace();
@@ -271,5 +329,25 @@ public class FiremenCoordinator extends ImasAgent{
     public void setFiresTakenCareOf(Map<BuildingCell, Integer> firesTakenCareOf) {
         this.firesTakenCareOf = firesTakenCareOf;
     }
+    
+    private static HashMap sortByValues(HashMap map)
+    {
+        List tmp = new LinkedList(map.entrySet());
+        
+        Collections.sort(tmp, new Comparator(){
 
+            @Override
+            public int compare(Object o1, Object o2) {
+                return ((Comparable)((Map.Entry)(o1)).getValue()).compareTo(((Map.Entry)(o2)).getValue());
+               
+            }
+            
+        });
+        HashMap sorted = new LinkedHashMap();
+        for(Iterator it = tmp.iterator(); it.hasNext();){
+        Map.Entry entry= (Map.Entry)it.next();
+        sorted.put(entry.getKey(), entry.getValue());
+        }
+        return sorted;
+    }
 }

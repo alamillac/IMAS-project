@@ -17,7 +17,8 @@ public enum MessageType {
     DONE(4),
     REQUEST_MOVE(5),
     NEW_FIRES(6),
-    AUCTION_PROPOSAL(7);
+    AUCTION_PROPOSAL(7),
+    GO_TO_THIS_FIRE(8);
 
     private int value;
 
