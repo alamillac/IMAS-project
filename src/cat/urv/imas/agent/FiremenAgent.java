@@ -102,10 +102,10 @@ public class FiremenAgent extends NavigatorAgent {
                                     setTargetPosition((Cell)order[0]);
                                     if((int)order[1]==0)
                                     {
-                                        setStatus(NavigatorStatus.FIRST_WINNER);
+                                        FiremenAgent.this.setStatus(NavigatorStatus.FIRST_WINNER);
                                     }else
                                     {
-                                        setStatus(NavigatorStatus.IN_JOB);
+                                        FiremenAgent.this.setStatus(NavigatorStatus.IN_JOB);
                                     }
                                     break;
                                 case ACLMessage.CFP :

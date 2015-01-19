@@ -159,4 +159,14 @@ public abstract class NavigatorAgent extends ImasAgent {
         return targetPosition;
     }
 
+    public NavigatorStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(NavigatorStatus status) {
+        this.status = status;
+    }
+    
+    
+
 }
