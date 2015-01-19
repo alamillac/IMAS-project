@@ -43,27 +43,19 @@ public class FiremenCoordinator extends ImasAgent{
      * Central agent id.
      */
     private AID coordinatorAgent;
+    
+    private int numberOfFiremen; 
+    
+    private Map<AID, List<Integer>> firemanResponses;  
 
+    
     public FiremenCoordinator() {
         super(AgentType.FIREMEN_COORDINATOR);
     }
     
     private Map<BuildingCell, Integer> firesTakenCareOf;
 
-    /*
-     * Inform that it finish the process of the step
-     */
-    private void informStepCoordinator() {
-        ACLMessage stepMsg = new ACLMessage(ACLMessage.INFORM);
-        stepMsg.clearAllReceiver();
-        stepMsg.addReceiver(this.coordinatorAgent);
-        try {
-            stepMsg.setContentObject(new MessageContent(MessageType.DONE, null));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        send(stepMsg);
-    }
+    
     
     @Override
     protected void setup() {
@@ -119,6 +111,7 @@ public class FiremenCoordinator extends ImasAgent{
                                             searchCriterion.setType(AgentType.FIREMAN.toString());  
                                             Map<AgentType, List<Cell>> a = game.getAgentList();
                                             List<Cell> FIR = a.get(AgentType.FIREMAN);
+                                            setNumberOfFiremen(FIR.size());
                                             setGame(game); //we need to set game, so we can get fires (for now) 
                                             int i = 1;
                                             for (Cell FIR1 : FIR) {
@@ -155,7 +148,19 @@ public class FiremenCoordinator extends ImasAgent{
                             }
                             if(msg.getPerformative()==ACLMessage.PROPOSE)
                             {
-                                String protocol = msg.getProtocol();
+                                
+                                MessageContent mc;
+                                try {
+                                     mc = (MessageContent)msg.getContentObject();
+                                     firemanResponses.put(msg.getSender(), (List<Integer>)mc.getContent());
+                                     
+                                } catch (UnreadableException ex) {
+                                    Logger.getLogger(FiremenCoordinator.class.getName()).log(Level.SEVERE, null, ex);
+                                }
+                                if(firemanResponses.size()==numberOfFiremen)
+                                {
+                                    selectWinners();
+                                }
                             }
                         }
                         else {
@@ -171,6 +176,28 @@ public class FiremenCoordinator extends ImasAgent{
 
     }
 
+    /*
+     * Inform that it finish the process of the step
+     */
+    private void informStepCoordinator() {
+        ACLMessage stepMsg = new ACLMessage(ACLMessage.INFORM);
+        stepMsg.clearAllReceiver();
+        stepMsg.addReceiver(this.coordinatorAgent);
+        try {
+            stepMsg.setContentObject(new MessageContent(MessageType.DONE, null));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        send(stepMsg);
+    }
+    
+    private void selectWinners()
+    {
+        int a = 2;
+        firemanResponses= new HashMap<>();
+    }
+    
+    
     private void newFires()
     {
         Map<BuildingCell, Integer> temporaryFiremap = new HashMap<>();
@@ -207,8 +234,9 @@ public class FiremenCoordinator extends ImasAgent{
            e.printStackTrace();
        }
        
+       firemanResponses = new HashMap<>();
+       
        this.send(initialRequest); 
-        
     }
     /**
      * Update the game settings.
@@ -218,7 +246,15 @@ public class FiremenCoordinator extends ImasAgent{
     public void setGame(GameSettings game) {
         this.game = game;
     }
+    
+    public int getNumberOfFiremen() {
+        return numberOfFiremen;
+    }
 
+    public void setNumberOfFiremen(int numberOfFiremen) {
+        this.numberOfFiremen = numberOfFiremen;
+    }
+    
     /**
      * Gets the current game settings.
      *
