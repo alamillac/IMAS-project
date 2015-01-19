@@ -135,7 +135,7 @@ public class FiremenCoordinator extends ImasAgent{
                                            } catch (Exception e) {
                                                e.printStackTrace();
                                            }
-                                           newFires(); // don't forget to delete
+                                           //newFires(); // don't forget to delete
                                            this.myAgent.send(initialRequest);                                        
                                             break;
                                         case NEW_FIRES:
@@ -247,6 +247,8 @@ public class FiremenCoordinator extends ImasAgent{
                 }
             }
             i++;
+            firesTakenCareOf.put(fireCell, fireCell.getBurnedRatio()); //we add fire to fires that are taken care of 
+            newFires.remove(fireCell); // remove new fire;
         }
         
         

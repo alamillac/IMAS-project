@@ -98,6 +98,15 @@ public class FiremenAgent extends NavigatorAgent {
                             switch(msg.getPerformative()) {
                                 case ACLMessage.REQUEST :
                                     mc = (MessageContent)msg.getContentObject();//order from coordinator
+                                    Object[] order = (Object[])mc.getContent();
+                                    setTargetPosition((Cell)order[0]);
+                                    if((int)order[1]==0)
+                                    {
+                                        setStatus(NavigatorStatus.FIRST_WINNER);
+                                    }else
+                                    {
+                                        setStatus(NavigatorStatus.IN_JOB);
+                                    }
                                     break;
                                 case ACLMessage.CFP :
                                     responseOnAuction((Map<BuildingCell, Integer>)mc.getContent());
