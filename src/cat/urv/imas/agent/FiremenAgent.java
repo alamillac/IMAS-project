@@ -11,6 +11,7 @@ import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.onthology.MessageContent;
 import cat.urv.imas.utils.MessageType;
 import cat.urv.imas.utils.NavigatorStatus;
+import cat.urv.imas.utils.Utils;
 import com.sun.javafx.image.impl.IntArgb;
 import com.sun.jmx.snmp.BerDecoder;
  import jade.core.*;
@@ -32,6 +33,7 @@ import java.util.Map;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.newdawn.slick.util.pathfinding.Path;
 /**
  *
  * @author Domen
@@ -155,7 +157,15 @@ public class FiremenAgent extends NavigatorAgent {
             if(this.status!=NavigatorStatus.FIRST_WINNER) //if agent is not first winner 
             {
              bc = entry.getKey();
-             steps.add((int)findShortestPath((Cell)bc));
+             Path p = Utils.getShortestPath(this.game.getMap(), this.agentPosition, this.findFreeCell((Cell)bc));
+             //steps.add((int)findShortestPath((Cell)bc));
+             if(p != null) {
+                 steps.add(p.getLength());
+             }
+             else {
+                 //Thats mean the agent can not go to this position, we can add negative value to refer to this 
+                 steps.add(-1);
+             }
             }else
             {
               steps.add(Integer.MAX_VALUE);  
