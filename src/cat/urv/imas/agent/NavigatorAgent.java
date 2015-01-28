@@ -55,18 +55,15 @@ public abstract class NavigatorAgent extends ImasAgent {
         return this.shortestPath.getLength();        
     }
     
-    public Cell findFreeCell(Cell tPosition)
-    {
-        for(int i = -1; i<2;i++)
-        {
-            for(int j = -1; j<2;i++)
-            {
+    public Cell findFreeCell(Cell tPosition) {
+        for(int i = -1; i<2;i++) {
+            for(int j = -1; j<2;i++) {
                 try {
-                    if(this.game.get(tPosition.getRow() + i, tPosition.getCol()+ j).getCellType().equals(CellType.STREET))
-                    {
+                    if(this.game.get(tPosition.getRow() + i, tPosition.getCol()+ j).getCellType().equals(CellType.STREET)) {
                         return this.game.get(tPosition.getRow()+i, tPosition.getCol()+j);
                     }
-                } catch (Exception e) {
+                } 
+                catch (Exception e) {
                 }
             }
         }
@@ -113,7 +110,7 @@ public abstract class NavigatorAgent extends ImasAgent {
         int s = this.currentStep + 1;
         Path.Step step = shortestPath.getStep(s);
         StreetCell cell =(StreetCell) this.game.get(step.getX(), step.getY());
-        if(cell.isThereAnAgent()) {
+        if(!cell.isThereAnAgent()) {
             this.findShortestPath();
             return moveStep();
         }
