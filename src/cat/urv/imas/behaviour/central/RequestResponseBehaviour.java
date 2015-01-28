@@ -48,6 +48,10 @@ public class RequestResponseBehaviour extends AchieveREResponder {
         agent.log("Waiting REQUESTs from authorized agents");
     }
 
+    RequestResponseBehaviour(CentralAgent centralAgent) {
+        super(centralAgent, null);
+    }
+
     /**
      * When Central Agent receives a REQUEST message, it agrees. Only if
      * message type is AGREE, method prepareResultNotification() will be invoked.
