@@ -721,8 +721,6 @@ public class FiremenCoordinator extends ImasAgent{
         }
         
         
-        
-        int a = 2;
         firemanResponses= new HashMap<>();
     }
     

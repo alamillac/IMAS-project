@@ -90,6 +90,8 @@ public class CentralAgent extends ImasAgent {
     
     public static int DURATION = 1000;
     
+    public static int probability = 0; //probability that new fire will be created 
+    
     protected Map<BuildingCell, Integer> newFires; 
     
     /**
@@ -237,7 +239,7 @@ public class CentralAgent extends ImasAgent {
      * There is a probability that a fire occur in a building
      */
     public Map<BuildingCell, Integer> addNewFire() {
-        boolean fireProb = randomCoin(70); //a probability of add a new fire
+        boolean fireProb = randomCoin(probability); //a probability of add a new fire
         //Map<BuildingCell, Integer> newFire = null;
 
         //add a fire with a fireProb
@@ -437,7 +439,9 @@ public class CentralAgent extends ImasAgent {
         // 2. Load game settings.
         this.game = InitialGameSettings.load("game.settings");
         log("Initial configuration settings loaded");
-
+        
+        probability = 10; // temporary set probability for new fire to 10%
+        
         // 3. Load GUI
         try {
             this.gui = new GraphicInterface(game);
