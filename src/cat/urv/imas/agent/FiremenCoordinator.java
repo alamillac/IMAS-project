@@ -70,8 +70,6 @@ public class FiremenCoordinator extends ImasAgent{
     
     private int numberOfFiremen; 
     
-    //private Map<BuildingCell, Integer> newFires;
-    
     private Map<AID, List<Integer>> firemanResponses;  
 
     

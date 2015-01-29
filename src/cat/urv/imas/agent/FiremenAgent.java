@@ -480,18 +480,31 @@ public class FiremenAgent extends NavigatorAgent {
         
         @Override
         public void action() {
-            if(fa.moveStep()) {
-                ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-                msg.addReceiver(fa.firemenCoordinator);
-                try {
-                    msg.setContentObject(new MessageContent(MessageType.REQUEST_MOVE, fa.agentPosition));
-                }
-                catch(Exception ex) {
-                    ex.printStackTrace();
-                    msg.setPerformative(ACLMessage.FAILURE);
-                }
-                fa.send(msg);
-                fa.log("Sending new position to " + fa.firemenCoordinator.getLocalName());
+            
+            
+            String step = fa.moveStep();
+            switch (step) {
+                case "OK":    // fireman can make a new step, we send new location to coordinator
+                    ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+                    msg.addReceiver(fa.firemenCoordinator);
+                    try {
+                        msg.setContentObject(new MessageContent(MessageType.REQUEST_MOVE, fa.agentPosition));
+                    }
+                    catch(Exception ex) {
+                        ex.printStackTrace();
+                        msg.setPerformative(ACLMessage.FAILURE);
+                    }
+                    fa.send(msg);
+                    fa.log("Sending new position to " + fa.firemenCoordinator.getLocalName());
+                         break;
+                case "ON_CELL":  // wen need to send that fireman in on fire so system agent can reduce fire for 5 %
+                        //TO DO 
+                        break;
+                case "PATH_DONT_EXIST":  // almost imposible, but if this happens we need to wait one step 
+                         break;
+                default: 
+                         break;
+            
             }
         }
 

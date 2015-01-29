@@ -95,9 +95,9 @@ public abstract class NavigatorAgent extends ImasAgent {
         return this.shortestPath.getLength();
     }
 
-    protected boolean moveStep() {
+    protected String moveStep() {
         if(this.shortestPath == null) {
-            return false;
+            return "PATH_DONT_EXIST";
         }
 
         //Already in the target
@@ -105,19 +105,19 @@ public abstract class NavigatorAgent extends ImasAgent {
                 (this.agentPosition.getRow() == this.targetPosition.getRow() &&
                 this.agentPosition.getCol() == this.targetPosition.getCol())) {
 
-            return false;
+            return "ON_CELL";
         }
         int s = this.currentStep + 1;
         Path.Step step = shortestPath.getStep(s);
         StreetCell cell =(StreetCell) this.game.get(step.getX(), step.getY());
         if(!cell.isThereAnAgent()) {
-            this.findShortestPath();
+            this.findShortestPath(); //
             return moveStep();
         }
         else {
             this.currentStep = s;
             this.agentPosition = cell;
-            return true;
+            return "OK";
         }
     }
 
