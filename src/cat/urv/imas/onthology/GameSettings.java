@@ -1,5 +1,5 @@
 /**
- * IMAS base code for the practical work.
+ * IMAS base code for the practical work. 
  * Copyright (C) 2014 DEIM - URV
  *
  * This program is free software: you can redistribute it and/or modify it under
@@ -18,10 +18,13 @@
 package cat.urv.imas.onthology;
 
 import cat.urv.imas.agent.AgentType;
-import cat.urv.imas.map.Cell;
 import cat.urv.imas.map.BuildingCell;
-import java.util.List;
-import java.util.Map;
+import cat.urv.imas.map.Cell;
+import cat.urv.imas.map.CellType;
+import cat.urv.imas.map.HospitalCell;
+import java.util.ArrayList;
+import java.util.*;
+import java.util.stream.Collectors;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -29,18 +32,18 @@ import javax.xml.bind.annotation.XmlRootElement;
 /**
  * Current game settings. Cell coordinates are zero based: row and column values
  * goes from [0..n-1], both included.
- *
+ * 
  * Use the GenerateGameSettings to build the game.settings configuration file.
- *
+ * 
  */
 @XmlRootElement(name = "GameSettings")
-public class GameSettings implements java.io.Serializable {
+public class GameSettings implements java.io.Serializable {    
 
     /* Default values set to all attributes, just in case. */
     /**
      * Seed for random numbers.
      */
-    private long seed = 0;
+    private float seed = 0.0f;
     /**
      * List of number of beds per hospital. Therefore, a value "{10, 10, 10}"
      * means there will be 3 hospitals with 10 beds each. The number of beds
@@ -58,9 +61,14 @@ public class GameSettings implements java.io.Serializable {
      */
     private int peoplePerAmbulance = 3;
     /**
+     * Number of people inside each ambulance
+     */
+    private int[] ambulanceCurrentLoad;
+    /**
      * Number of people loaded into an ambulance per simulation step.
      */
     private int ambulanceLoadingSpeed = 1;
+
     /**
      * Percentage of burning of a building without firemen. A value -fireSpeed
      * has to be applied when there are firemen surrounding the fire, at a total
@@ -89,23 +97,24 @@ public class GameSettings implements java.io.Serializable {
      * Computed summary of the list of fires. The integer value introduces
      * the burned ratio of the building.
      */
-    protected Map<BuildingCell, Integer> fireList;
+    protected Map<Cell, Integer> fireList;
     /**
      * Title to set to the GUI.
      */
     protected String title = "Demo title";
-    /*
-     * List of the buildings on the map
+    
+    /**
+     * Keeps track of new fires appearing
      */
-    protected List<BuildingCell> buildingList;
+    private Cell newFire;
+    
 
-
-    public long getSeed() {
+    public float getSeed() {
         return seed;
     }
 
     @XmlElement(required = true)
-    public void setSeed(long seed) {
+    public void setSeed(float seed) {
         this.seed = seed;
     }
 
@@ -189,7 +198,7 @@ public class GameSettings implements java.io.Serializable {
     public Cell[][] getMap() {
         return map;
     }
-
+    
     /**
      * Gets the cell given its coordinate.
      * @param row row number (zero based)
@@ -210,30 +219,150 @@ public class GameSettings implements java.io.Serializable {
     }
 
     @XmlTransient
-    public Map<BuildingCell, Integer> getFireList() {
+    public Map<Cell, Integer> getFireList() {
         return fireList;
     }
 
-    public void setFireList(Map<BuildingCell, Integer> fireList) {
+    public void setFireList(Map<Cell, Integer> fireList) {
         this.fireList = fireList;
     }
-
-    public void setBuildingList(List<BuildingCell> buildings) {
-        this.buildingList = buildings;
-    }
-
-    public List<BuildingCell> getBuildingList() {
-        return buildingList;
-    }
-
+    
+    @Override
     public String toString() {
         //TODO: show a human readable summary of the game settings.
-        return "Game settings";
+        List<Cell> listAmbulance = agentList.get(AgentType.AMBULANCE);
+        List<Cell> listFireman = agentList.get(AgentType.FIREMAN);
+        List<Cell> listPrivate = agentList.get(AgentType.PRIVATE_VEHICLE);
+        String retstr = "\n\n-------Game information-------\nPositions of mobile agents: \n";
+        int i = 0;
+        for(Cell cell: listAmbulance){
+            retstr += "\t Ambulance " + i + ": (" + cell.getRow() + "," + cell.getCol() + ")\n";
+            i++;
+        }
+        i = 0;
+        for(Cell cell: listFireman){
+            retstr += "\t Fireman " + i + ": (" + cell.getRow() + "," + cell.getCol() + ")\n";
+            i++;
+        }
+        i = 0;
+        for(Cell cell: listPrivate){
+            retstr += "\t Private_vehicle " + i + ": (" + cell.getRow() + "," + cell.getCol() + ")\n";
+            i++;
+        }
+        retstr += "Occupancy of Hospitals: \n";
+        for(i=0; i<this.hospitalCapacities.length; i++){
+            retstr += "\t Hospital " + i + ": " + this.hospitalCapacities[i] + "\n";
+        }
+        retstr += "Fires: \n";
+        if (this.fireList != null){
+            i = 0;
+            for(Cell cell: this.fireList.keySet()){
+                retstr += "\t Fire " + i + ": " + this.fireList.get(cell) + "\n";
+                i++;
+            }
+        }else{
+            retstr += "\t No fires... \n";
+        }
+        return retstr;
     }
-
+    
     public String getShortString() {
-        //TODO: list of agents, hospitals and gas stations (if any)
-        return "Game settings: agent related string";
+        List<Cell> listAmbulance = agentList.get(AgentType.AMBULANCE);
+        List<Cell> listFireman = agentList.get(AgentType.FIREMAN);
+        List<Cell> listPrivate = agentList.get(AgentType.PRIVATE_VEHICLE);
+        String retstr = "\n\n-------Game information-------\nPositions of mobile agents: \n";
+        int i = 0;
+        for(Cell cell: listAmbulance){
+            retstr += "\t Ambulance " + i + ": (" + cell.getRow() + "," + cell.getCol() + ")\n";
+            i++;
+        }
+        i = 0;
+        for(Cell cell: listFireman){
+            retstr += "\t Fireman " + i + ": (" + cell.getRow() + "," + cell.getCol() + ")\n";
+            i++;
+        }
+        i = 0;
+        for(Cell cell: listPrivate){
+            retstr += "\t Private_vehicle " + i + ": (" + cell.getRow() + "," + cell.getCol() + ")\n";
+            i++;
+        }
+        return retstr;
     }
+    
+    public void setNewFire(Cell fireCell) {
+        this.newFire = fireCell;
+    }
+    
+    public Cell getNewFire() {
+        return this.newFire;
+    }
+    
+    public List<Cell> getBuildingsOnFire() {
+        
+        List<Cell> buildingsOnFire = new ArrayList<>();
+        
+        Arrays.asList(map).forEach(cells -> {
+            buildingsOnFire.addAll(Arrays.asList(cells)
+                    .stream()
+                    .filter(cell -> cell.getCellType() == CellType.BUILDING)
+                    .filter(cell -> ((BuildingCell) cell).isOnFire())
+                    .collect(Collectors.toList()));
+        });                
 
+        return buildingsOnFire;
+    }
+    
+    public List<Cell> getClearBuildings() {
+        
+        List<Cell> clearBuildings = new ArrayList<>();
+        Arrays.asList(map).forEach(cells -> {
+            clearBuildings.addAll(Arrays.asList(cells)
+                    .stream()
+                    .filter(cell -> cell.getCellType() == CellType.BUILDING)
+                    .filter(cell -> !((BuildingCell) cell).isOnFire())
+                    .collect(Collectors.toList()));
+        });
+
+        return clearBuildings;
+    }
+    
+    public static Boolean isBurned(Cell c) {
+
+        if (((BuildingCell)c).getBurnedRatio() == 100) {
+            return ((BuildingCell)c).isDestroyed();
+        }
+        return false;
+    }
+    
+    public void initializeAmbulanceCapacities() {
+        int nAmbulances = this.agentList.get(AgentType.AMBULANCE).size();
+        int[] aCapacities = new int[nAmbulances];
+        for (int i : aCapacities) {
+            i = this.peoplePerAmbulance;
+        }
+        
+        this.ambulanceCurrentLoad = aCapacities;
+    }
+    
+    public int getAmbulanceCurrentLoad(int ambulance) {
+        return this.ambulanceCurrentLoad[ambulance];
+    }
+    
+    public void updateAmbulanceCurrentLoad(int ambulance, int load) {
+        this.ambulanceCurrentLoad[ambulance] += load;
+        if (this.ambulanceCurrentLoad[ambulance] > this.peoplePerAmbulance) {
+            this.ambulanceCurrentLoad[ambulance] = this.peoplePerAmbulance;
+        } else if (this.ambulanceCurrentLoad[ambulance] < 0 ) {
+            this.ambulanceCurrentLoad[ambulance] = 0;
+        }
+    }
+    
+
+    
+    public void advanceTurn() {
+        for (Cell c : this.agentList.get(AgentType.HOSPITAL)) {
+            HospitalCell hc = (HospitalCell)c;
+            //hc.newTurn();
+        }
+    }
 }

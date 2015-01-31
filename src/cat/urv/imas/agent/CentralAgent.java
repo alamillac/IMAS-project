@@ -17,38 +17,29 @@
  */
 package cat.urv.imas.agent;
 
-import cat.urv.imas.behaviour.central.GameLoopBehaviour;
-import java.util.ArrayList;
 import cat.urv.imas.onthology.InitialGameSettings;
-import cat.urv.imas.onthology.InfoAgent;
 import cat.urv.imas.onthology.GameSettings;
-import cat.urv.imas.onthology.MessageContent;
 import cat.urv.imas.gui.GraphicInterface;
-import cat.urv.imas.behaviour.central.RequestResponseBehaviour;
-import cat.urv.imas.map.Cell;
-import cat.urv.imas.map.StreetCell;
 import cat.urv.imas.map.BuildingCell;
-import cat.urv.imas.map.CellType;
-import cat.urv.imas.utils.MessageList;
+import cat.urv.imas.map.Cell;
+import cat.urv.imas.map.HospitalCell;
+import cat.urv.imas.map.StreetCell;
+import cat.urv.imas.onthology.InfoAgent;
+import cat.urv.imas.onthology.MessageContent;
 import cat.urv.imas.utils.MessageType;
 import jade.core.*;
-import jade.core.behaviours.OneShotBehaviour;
-import jade.domain.*;
+import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPANames.InteractionProtocol;
 import jade.lang.acl.*;
-import jade.wrapper.AgentContainer;
+import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.util.List;
 import java.util.Map;
-import jade.core.behaviours.TickerBehaviour;
-import java.io.IOException;
-import java.util.Random;
-import java.util.Iterator;
+import java.util.stream.*;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.HashMap;
-import java.util.function.Consumer;
-
 
 /**
  * Central agent that controls the GUI and loads initial configuration settings.
@@ -57,53 +48,40 @@ import java.util.function.Consumer;
  */
 public class CentralAgent extends ImasAgent {
 
+    public static final String AGENT_PACKAGE = "cat.urv.imas.agent.";
+    
     /**
      * GUI with the map, central agent log and statistics.
      */
     private GraphicInterface gui;
-
     /**
      * Game settings. At the very beginning, it will contain the loaded
      * initial configuration settings.
      */
     private GameSettings game;
-
     /**
      * The Coordinator agent with which interacts sharing game settings every
      * round.
      */
-    protected AID coordinatorAgent;
+    private AID coordinatorAgent;
+    
+    // List of fires
+    
+    private List<Cell> fires;    
+    
+    // Simulation step counter
+    
+    private int simulationStep;
 
-    /*
-     * Random generator
-     */
-    private Random random;
-
-    /*
-     * Total number of citizens killed by fire
-     */
-    private int totalDeadCitizens = 0;
-    
-    private int gameStep = 0;
-
-    private MessageList messagesList;
-    
-    public static int DURATION = 1000;
-    
-    public static int probability = 0; //probability that new fire will be created 
-    
-    protected Map<BuildingCell, Integer> newFires; 
-    
     /**
      * Builds the Central agent.
      */
     public CentralAgent() {
         super(AgentType.CENTRAL);
-        messagesList = new MessageList(this);
     }
 
     /**
-     * A message is shown in the log area of the GUI, as well as in the
+     * A message is shown in the log area of the GUI, as well as in the 
      * stantard output.
      *
      * @param log String to show
@@ -115,9 +93,9 @@ public class CentralAgent extends ImasAgent {
         }
         super.log(log);
     }
-
+    
     /**
-     * An error message is shown in the log area of the GUI, as well as in the
+     * An error message is shown in the log area of the GUI, as well as in the 
      * error output.
      *
      * @param error Error to show
@@ -138,277 +116,7 @@ public class CentralAgent extends ImasAgent {
     public GameSettings getGame() {
         return this.game;
     }
-
-    /*
-     * Init the random variable with a seed
-     */
-    protected void initRandom(long seed) {
-        random = new Random(seed);
-    }
-
-    /*
-     * Return a Building cell randomly
-     */
-    protected BuildingCell getRandomBuilding() {
-        List<BuildingCell> buildings = game.getBuildingList();
-        int num_buildings = buildings.size();
-        BuildingCell building;
-        if(num_buildings > 0) {
-            int building_id = random.nextInt(num_buildings);
-            building = buildings.get(building_id);
-        }
-        else {
-            building = null;
-        }
-        return building;
-    }
-
-    /*
-     * Update the fires ratio of burning buildings
-     */
-    public void updateFiresRatio() {
-        //get all the burning fires
-        Map<BuildingCell, Integer> firemap = game.getFireList();
-
-        for(BuildingCell building : firemap.keySet()) {
-            //if the bulding is on fire
-            if(building.isOnFire()) {
-                // check if there are some firemen agents closest to it
-                int fCount = getFiremenArroundFire(building);
-                int fireSpeed = firemap.get(building);
-                if(fCount > 0) {
-                    //if there? reduce the fire at aratio fireSpeed% for each fireman agent
-                    fireSpeed *= -fCount;
-                }
-                building.updateBurnedRatio(fireSpeed);
-                //logging the burning build
-                int row = building.getRow();
-                int col = building.getCol();
-                log("Building in (" + Integer.toString(col) + "," + Integer.toString(row) + ") is being burned with burnratio " + Integer.toString(fireSpeed));
-            }
-        }
-    }
     
-    protected int getFiremenArroundFire(BuildingCell cell) {
-        int f = 0;
-        List<Cell> fCells  = this.game.getAgentList().get(AgentType.FIREMAN);
-        for(Cell c : fCells) {
-            for(int x = -1; x <= 1; x++) {
-                for(int y = -1; y <= 1; y ++) {
-                    if(x == 0 && y == 0) continue;
-                    if(c.getRow() == cell.getRow() + x && c.getCol() == cell.getCol() + y ) {
-                        f++;
-                    }
-                }
-            }
-        }
-        return f;
-    }
-
-    /*
-     * Set a fire in a random building
-     */
-    protected Map<BuildingCell, Integer> setFire() {
-        Map<BuildingCell, Integer> newFire = new HashMap();
-        //get a building to put fire on it
-        int fireSpeed = game.getFireSpeed();
-        BuildingCell building = getRandomBuilding();
-
-        //building on fire if it don't have fire
-        if(building != null && ! building.isOnFire()) {
-            Map<BuildingCell, Integer> firemap = game.getFireList();
-            firemap.put(building, fireSpeed);
-            newFire.put(building, fireSpeed);
-            building.updateBurnedRatio(fireSpeed);
-        }
-        return newFire;
-    }
-
-    /*
-     * Get a threshold probability
-     * trueProbability should be between 0 and 100
-     */
-    protected boolean randomCoin(int trueProbability) {
-        int randomNum = random.nextInt(100) + 1;
-
-        return randomNum < trueProbability;
-    }
-
-    /*
-     * Set fires on the city
-     * There is a probability that a fire occur in a building
-     */
-    public Map<BuildingCell, Integer> addNewFire() {
-        boolean fireProb = randomCoin(probability); //a probability of add a new fire
-        //Map<BuildingCell, Integer> newFire = null;
-
-        //add a fire with a fireProb
-        if(fireProb) {
-            log("setting a fire");
-            this.newFires = setFire();
-        }
-        else {
-            this.newFires = new HashMap<>();
-        }
-
-        return this.newFires;
-    }
-
-    /*
-     * Print all the statistics of the step.
-     * +Percentage of fires that had firemen trying to put it out.
-     * +Percentage of fires that were totally put out.
-     * +Average of burned ratio of buildings when the first fireman arrived.
-     * +Percentage of people in risk due to fires.
-     * +Percentage of people brought to hospitals.
-     * +Percentage of dead people due to fires.
-     * +Percentage of occupied beds by simulation steps, and their average.
-     * +The number of buildings destroyed. This value is gathered by the SystemAgent and it is only zero if all fires are put out and no building is destroyed.
-     * +The number of dead citizens. This value is also gathered by the SystemAgent and it will show the number of fire victims. Each building on fire has an amount of citizens in it. This statistic value will be only zero when no citizens have died due to the fires.
-     */
-    protected void showStatistics() {
-        //TODO
-    }
-
-    /*
-     * Search for destroyed buildings (burned ratio = 100) and "kill" all the citizen on those buildings.
-     * Return the number of citizens dead on the step.
-     */
-    protected int updateDeaths() {
-        //get all the burning fires
-        Map<BuildingCell, Integer> firemap = game.getFireList();
-
-        Iterator<Map.Entry<BuildingCell, Integer>> iter = firemap.entrySet().iterator();
-
-        int stepDeadCitizens = 0;
-        while(iter.hasNext()) {
-            Map.Entry<BuildingCell, Integer> building_bratio = iter.next();
-
-            BuildingCell building = building_bratio.getKey();
-            if(building.isDestroyed()) {
-                //kill all the citizen on the building
-                int deadCitizen = building.killCitizens();
-                stepDeadCitizens += deadCitizen;
-                totalDeadCitizens += deadCitizen;
-
-                //remove the building from the fireList
-                iter.remove();
-
-                //logging the destroyed building
-                int row = building.getRow();
-                int col = building.getCol();
-                log("Building in (" + Integer.toString(col) + "," + Integer.toString(row) + ") was destroyed by fire. " + deadCitizen + " citizens died in the building");
-            }
-        }
-
-        return stepDeadCitizens;
-    }
-
-    /*
-     * Move all the private vehicles on the city with the following rules:
-     * -If a private vehicle is in any street, the private vehicle has to go straight on in the same direction.
-     *  -If a private vehicle arrives at a street cell where the vehicle can turn right and/or left (like in a street cross), the private vehicle will have:
-     *      +An 80% of probability of going straight on, and
-     *      +A 20% of turning right or left. Both directions will have the same probability of being chosen whenever they both are available.
-     *  -If the private vehicle arrives at a street cell from which cannot go straight on, it will have the same probability of turning right or left if both directions are available.
-     */
-    public void movePrivateVehicles() {
-        //get the list of all agents
-        Map<AgentType, List<Cell>> agentList = game.getAgentList();
-
-        long randomSeed = game.getSeed();
-
-        List<Cell> privateVehiclesPositions = agentList.get(AgentType.PRIVATE_VEHICLE);
-        List<Cell> newPrivateVehiclesPositions = new ArrayList();
-        //iterate in private vehicules
-        for(Cell privateVehiclePosition : privateVehiclesPositions) {
-            InfoAgent privateVehicle = ((StreetCell)privateVehiclePosition).getAgent();
-
-            boolean tryTurn = randomCoin(20); //a probability of turn right or left
-            try {
-                Cell newPosition = privateVehicle.randomMovement(game.getMap(), privateVehiclePosition, tryTurn);
-                newPrivateVehiclesPositions.add(newPosition);
-            } catch (Exception e) {
-                newPrivateVehiclesPositions.add(privateVehiclePosition);
-                System.err.println("Error moving vehicle");
-            }
-        }
-        agentList.put(AgentType.PRIVATE_VEHICLE, newPrivateVehiclesPositions);
-    }
-
-    /*
-     * This method is executed on each step
-     */
-    public Map<String, Object> simulationStep() {
-        //update fires
-        updateFiresRatio();
-        //add fires
-        Map<BuildingCell, Integer> newFire = addNewFire();
-        //vehicles Movement
-        movePrivateVehicles();
-        //kill all the citizens of destroyed buildings
-        int stepDeads = updateDeaths();
-        //Show the statistics of the step
-        showStatistics();
-        Map<String, Object> stepData = new HashMap();
-        stepData.put("new_fires", newFire);
-
-        return stepData;
-    }
-
-    private void createAgents()
-    {
-        Map<AgentType, List<Cell>> a = this.game.getAgentList();
-        AgentContainer ac = this.getContainerController();
-        List<Cell> FIR = a.get(AgentType.FIREMAN);
-        List<Cell> AMB = a.get(AgentType.AMBULANCE);
-        List<Cell> HOS = a.get(AgentType.HOSPITAL);
-       //properties for hospital
-        /*Object[] property = new Object[3];
-        property[0] = this.game;
-        property[1] = this.game.getStepsToHealth();
-
-        */
-        int i = 1;
-        for (Cell HOS1 : HOS) {
-            //here was the mistake, take in your account that poperty now is one object,
-            //and you assign this object to all agents, when the last agent created,
-            //the position value for all agents will be same
-            //property[2]= HOS1;
-            UtilsAgents.createAgent(ac, "hospitalAgent" + i, "cat.urv.imas.agent.HospitalAgent", new Object[] {this.game, this.game.getStepsToHealth(), HOS1});
-            i++;
-        }
-
-
-        //properties for ambulance 
-        /*
-        //properties for ambulance
-        property = new Object[4];
-
-        property[1] = this.game;
-        property[2]= this.game.getAmbulanceLoadingSpeed();
-        property[3]= this.game.getPeoplePerAmbulance();
-        */
-
-        i = 1;
-        for (Cell AMB1 : AMB) {
-
-            
-            //property[0]= AMB1;
-            UtilsAgents.createAgent(ac, "ambulanceAgent" + i, "cat.urv.imas.agent.AmbulanceAgent", new Object[]{ AMB1, this.game, this.game.getAmbulanceLoadingSpeed(), this.game.getPeoplePerAmbulance() });
-
-            i++;
-        }
-
-        i = 1;
-        for (Cell FIR1 : FIR) {
-            
-            //property[0]= FIR1;
-            UtilsAgents.createAgent(ac, "firemenAgent" + i, "cat.urv.imas.agent.FiremenAgent", new Object[]{ FIR1, this.game });
-            i++;
-        }        
-    }
-
     /**
      * Agent setup method - called when it first come on-line. Configuration of
      * language to use, ontology and initialization of behaviours.
@@ -416,32 +124,19 @@ public class CentralAgent extends ImasAgent {
     @Override
     protected void setup() {
 
-        /* ** Very Important Line (VIL) ************************************* */
-        this.setEnabledO2ACommunication(true, 1);
+
+        super.setup();
 
         // 1. Register the agent to the DF
-        ServiceDescription sd1 = new ServiceDescription();
-        sd1.setType(AgentType.CENTRAL.toString());
-        sd1.setName(getLocalName());
-        sd1.setOwnership(OWNER);
-
-        DFAgentDescription dfd = new DFAgentDescription();
-        dfd.addServices(sd1);
-        dfd.setName(getAID());
-        try {
-            DFService.register(this, dfd);
-            log("Registered to the DF");
-        } catch (FIPAException e) {
-            System.err.println(getLocalName() + " failed registration to DF [ko]. Reason: " + e.getMessage());
-            doDelete();
+        if(this.registerService(AgentType.CENTRAL.toString())) {
+            this.log("Service registered");
         }
+        
 
         // 2. Load game settings.
         this.game = InitialGameSettings.load("game.settings");
         log("Initial configuration settings loaded");
-        
-        probability = 10; // temporary set probability for new fire to 10%
-        
+
         // 3. Load GUI
         try {
             this.gui = new GraphicInterface(game);
@@ -451,103 +146,267 @@ public class CentralAgent extends ImasAgent {
             e.printStackTrace();
         }
 
+        //4. Create the agents
+        
+        this.createAgents();
         
         // search CoordinatorAgent
         ServiceDescription searchCriterion = new ServiceDescription();
         searchCriterion.setType(AgentType.COORDINATOR.toString());
         this.coordinatorAgent = UtilsAgents.searchAgent(this, searchCriterion);
-        // searchAgent is a blocking method, so we will obtain always a correct AID
-
-        createAgents();   
         
         // add behaviours
         // we wait for the initialization of the game
-        MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchProtocol(InteractionProtocol.FIPA_REQUEST), MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
+        //MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchProtocol(InteractionProtocol.FIPA_REQUEST), MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
 
-        this.addBehaviour(new InitialRequestResponseBehaviour());
-        this.addBehaviour(new GameLoopBehaviour(this, CentralAgent.DURATION));
+        //this.addBehaviour(new RequestResponseBehaviour(this, mt));
 
         // Setup finished. When the last inform is received, the agent itself will add
-        // a behaviour to send/receive action
+        // a behaviour to send/receive actions
+        
+        this.fires = new ArrayList<>();
+        
+        this.addBehaviour(new CyclicBehaviour() { 
+            
+            private CentralAgent ca = CentralAgent.this;
+            private MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchProtocol(InteractionProtocol.FIPA_REQUEST), MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+            @Override
+            public void action() {
+                ACLMessage msg = null;
+                while((msg = ca.receive(mt)) != null) {
+                    try {
+                        MessageContent mc = (MessageContent) msg.getContentObject();
+                        
 
-        initRandom(game.getSeed());
+                        switch(mc.getMessageType()) {
+                            case TURN_IS_DONE:
+                                List<Object[]> endSimulationData = (List<Object[]>) mc.getContent();
+                                
+                                ca.endSimulationTurn(endSimulationData);
+                                break;
+                            default:
+                                ca.log("Message Content not understood");
+                                break;
+                        }
+                    } catch (UnreadableException ex) {
+                        Logger.getLogger(CoordinatorAgent.class.getName()).log(Level.SEVERE, null, ex);
+                    }                    
+                }
+                block();
+                
+            }
+        });
+        
+        this.startSimulationStep();
     }
+    
+    private void performActions(List<Object[]> actions) {
 
+    }
+    
+    private void performMovements(List<Object[]> endSimulationData) {
+        Cell[][] currentMap = this.game.getMap();
+        
+        for (Cell[] cl : currentMap) {
+            for (Cell c : cl) {
+                if (c instanceof StreetCell) {
+                    StreetCell sc = (StreetCell)c;
+                    try {
+                        if (sc.isThereAnAgent()) {
+                            sc.removeAgent();
+                        }
+                    } catch (Exception ex) {
+                        Logger.getLogger(CentralAgent.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            }
+        }
+        
+        Map<AgentType, List<Cell>> content = new HashMap<>();
+        
+        for (Object[] sData : endSimulationData) {
+            
+            int row = Array.getInt(sData[1], 0);
+            int col = Array.getInt(sData[1], 1);
+            Cell position = new StreetCell(row, col);
+            String agentName = sData[0].toString();
+            if (agentName.startsWith("fireman")) {
+                if (content.get(AgentType.FIREMAN) == null) {
+                    List<Cell> positions = new ArrayList<>();
+                    positions.add(position);
+                    content.put(AgentType.FIREMAN, positions);
+                } else {
+                    List<Cell> positions = new ArrayList<>();
+                    positions.addAll(content.get(AgentType.FIREMAN));
+                    positions.add(position);
+                    content.put(AgentType.FIREMAN, positions);
+                }
+                int agentIdx = Integer.valueOf(agentName.substring(agentName.length() - 1)) - 1;
+                this.game.getAgentList().get(AgentType.FIREMAN).set(agentIdx, position);
+            } else {
+                if (content.get(AgentType.AMBULANCE) == null) {
+                    List<Cell> positions = new ArrayList<>();
+                    positions.add(position);
+                    content.put(AgentType.AMBULANCE, positions);
+                } else {
+                    List<Cell> positions = new ArrayList<>();
+                    positions.addAll(content.get(AgentType.AMBULANCE));
+                    positions.add(position);
+                    content.put(AgentType.AMBULANCE, positions);
+                }
+                int agentIdx = Integer.valueOf(agentName.substring(agentName.length() - 1)) - 1;
+                this.game.getAgentList().get(AgentType.AMBULANCE).set(agentIdx, position);
+            }
+        }
+        
+        content.entrySet().stream().forEach((entry) -> {
+            entry.getValue().stream().map((c) -> (StreetCell)currentMap[c.getRow()][c.getCol()]).forEach((sc) -> {
+                try {
+                    if (sc.isThereAnAgent()) {
+                        sc.removeAgent();
+                    }
+                    sc.addAgent(new InfoAgent(entry.getKey()));
+                } catch (Exception ex) {
+                    Logger.getLogger(CentralAgent.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            });
+        });
+        
+    }
+    
+    private void createAgents() {
+        
+        jade.wrapper.AgentContainer container = this.getContainerController();
+        // Create the FiremenCoordinatorAgent, HospitalCoordinatorAgent
+        UtilsAgents.createAgent(container, "firemenCoord", CentralAgent.AGENT_PACKAGE + "FiremenCoordinator", new Object[] { this.game});
+        UtilsAgents.createAgent(container, "hospCoord", CentralAgent.AGENT_PACKAGE + "HospitalCoordinator", new Object[] { this.game});
+        
+        // Create other agents
+        Map<AgentType, List<Cell>> agentList = this.game.getAgentList();
+        
+        agentList
+                .entrySet()
+                .stream()
+                .filter(es -> !es.getKey().toString().equalsIgnoreCase("private_vehicle"))
+                .forEach(es -> {
+                    String agentPrefix = es.getKey().toString().toLowerCase();
+                    String agentClassName = agentPrefix.substring(0, 1).toUpperCase() + agentPrefix.substring(1);
+                    
+                    int[] idx =  { 1 };
+                    
+                    es.getValue().forEach(cell -> {
+                        UtilsAgents.createAgent(container, 
+                                String.format("%s%d", agentPrefix, idx[0]), 
+                                String.format("%s%sAgent", CentralAgent.AGENT_PACKAGE, agentClassName),
+                                new Object[] { CentralAgent.this.game, cell});
+                        idx[0]++;
+                    });                    
+                });
+
+        
+    }
+    
+    private void startSimulationStep() {
+        this.simulationStep++;
+        
+        if(true) {
+            addNewFire();
+        }
+        this.sendNewGameInfo();
+    }
+    
+    private void endSimulationTurn(List<Object[]> endSimulationData) {
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(CentralAgent.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        
+        
+        this.performMovements(endSimulationData);
+        this.updateFiresRatio();
+
+        this.gui.updateGame();
+     
+        this.startSimulationStep();
+    }
+    
+    private void addNewFire() {
+        
+        List<Cell> buildings = this.game.getClearBuildings();
+        Random  random = new Random((int)this.game.getSeed());
+        if (buildings.size() > 0) {
+            int reandIdx = random.nextInt(buildings.size());
+            ((BuildingCell)buildings.get(reandIdx)).updateBurnedRatio(this.game.getFireSpeed());
+            this.game.setNewFire(buildings.get(reandIdx));
+            
+        }
+        else {
+            this.game.setNewFire(null);
+        }
+        
+    }
+    
+    /*
+     * Update the fires ratio of burning buildings
+     */
+    public void updateFiresRatio() {
+        //get all the burning fires
+        List<Cell> firemap = game.getBuildingsOnFire();
+
+        firemap.forEach((building) -> {
+            // check if there are some firemen agents closest to it
+            int fCount = getFiremenArroundFire((BuildingCell) building);
+            int fireSpeed = this.game.getFireSpeed();
+            if(fCount > 0) {
+                //if there? reduce the fire at aratio fireSpeed% for each fireman agent
+                fireSpeed *= -fCount;
+            }
+            
+            ((BuildingCell)building).updateBurnedRatio(fireSpeed);
+            //logging the burning build
+            int row = building.getRow();
+            int col = building.getCol();
+            log("Building in (" + Integer.toString(col) + "," + Integer.toString(row) + ") is being burned with burnratio " + Integer.toString(fireSpeed));
+        }); //if the bulding is on fire
+    }
+    
+    protected int getFiremenArroundFire(BuildingCell cell) {
+        int[] f = { 0 };
+        List<Cell> fCells  = this.game.getAgentList().get(AgentType.FIREMAN);
+        fCells.stream().forEach((c) -> {
+            for(int x = -1; x <= 1; x++) {
+                for(int y = -1; y <= 1; y ++) {
+                    if(x == 0 && y == 0) continue;
+                    if(c.getRow() == cell.getRow() + x && c.getCol() == cell.getCol() + y ) {
+                        f[0]++;
+                    }
+                }
+            }
+        });
+        return f[0];
+    }    
+    
+    private void sendNewGameInfo() {
+        
+        ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+        msg.addReceiver(this.coordinatorAgent);
+        msg.setProtocol(InteractionProtocol.FIPA_REQUEST);
+        log("Inform message to " + this.coordinatorAgent.getLocalName());
+        try {
+            msg.setContentObject(new MessageContent(MessageType.INFORM_CITY_STATUS, this.game));
+            log("Inform message content: " + MessageType.INFORM_CITY_STATUS.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        this.send(msg);
+    }
+    
     public void updateGUI() {
         System.out.println("CENTRAL AGENT:" + this.game.get(2, 2).toString());
         this.gui.updateGame();
-    }
-    
-    public void incGameStep() {
-        this.gameStep++;
-    }
-
-    public int getGameStep() {
-        return gameStep;
-    }
-    
-    public boolean isGameFinished() {
-        return this.gameStep > this.game.getSimulationSteps();
-    }
-
-    public AID getCoordinatorAgent() {
-        return coordinatorAgent;
-    }
-
-    public Map<BuildingCell, Integer> getNewFires() {
-        return newFires;
-    }
-    
-    
-    
-    
-    protected class InitialRequestResponseBehaviour extends OneShotBehaviour {
-
-        @Override
-        public void action() {
-            
-            boolean isInitOk = false;
-            ACLMessage reply = null;
-            while(!isInitOk) {
-                ACLMessage msg = CentralAgent.this.messagesList.getMessage();
-                try {
-                    MessageContent mc = (MessageContent) msg.getContentObject();
-                    if(mc != null && (mc.getMessageType() == MessageType.INITIAL_REQUEST)) {
-                        reply = msg.createReply();
-                        log("Initial request received");
-                        reply.setPerformative(ACLMessage.AGREE);
-                        CentralAgent.this.send(reply);
-                        isInitOk = true;
-                    }
-                    else {
-                        messagesList.addMessage(msg);
-                    }
-                }
-                catch(Exception ex) {
-                    messagesList.addMessage(msg);
-                }
-            }
-            
-            messagesList.endRetrieval();
-            
-            if(reply != null) {
-                reply.setPerformative(ACLMessage.INFORM);
-                try {
-                    reply.setContentObject(new MessageContent(MessageType.INFORM_CITY_STATUS, CentralAgent.this.game));
-                }
-                catch(Exception ex) {
-                    reply.setPerformative(ACLMessage.FAILURE);
-                    System.err.println(ex.toString());
-                    ex.printStackTrace();                    
-                }
-                CentralAgent.this.send(reply);
-            }
-            else {
-                log("No Initial request message found!!");
-            }
-            
-        }
-        
     }
 
 }

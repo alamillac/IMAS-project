@@ -20,7 +20,7 @@ import javax.xml.namespace.QName;
  */
 public class GenerateGameSettings {
 
-    private static final int STEPS = 30;
+    private static final int STEPS = 6;
 
     /*
      * ********************* JUST SET YOUR SETTINGS ****************************
@@ -31,11 +31,10 @@ public class GenerateGameSettings {
      * @param settings GameSettings instance.
      */
     public static void defineSettings(InitialGameSettings settings) {
-        settings.setSeed(12345678);
+        settings.setSeed(1234567.8f);
         settings.setHospitalCapacities(new int[]{5, 5, 5});
         settings.setSimulationSteps(STEPS);
         settings.setTitle("Practical exercise IMAS");
-        
         //add here whatever settings.set* to define your new settings.
     }
 

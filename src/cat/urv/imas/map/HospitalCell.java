@@ -56,17 +56,6 @@ public class HospitalCell extends Cell {
         //TODO: how we take into account when these people can leave the hospital?
         usedBeds += people;
     }
-    
-    
-    /**
-     * How many people will we release
-     *
-     * @param people number of people to put into the hospital.
-     */
-    public void release(int people) {
-        
-        usedBeds -= people;
-    }
 
     /**
      * Tells whether the hospital is full of healthing people.

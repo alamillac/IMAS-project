@@ -18,6 +18,10 @@
 package cat.urv.imas.agent;
 
 import jade.core.Agent;
+import jade.domain.DFService;
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.domain.FIPAException;
 
 /**
  * Agent abstraction used in this practical work.
@@ -77,5 +81,35 @@ public class ImasAgent extends Agent {
     public void errorLog(String str) {
         System.err.println(getLocalName() + ": " + str);
     }
+    
+    protected boolean registerService(String type) {
+        // 1. Register the agent to the DF
+        ServiceDescription sd = new ServiceDescription();
+        sd.setType(type);
+        sd.setName(this.getLocalName());
+        sd.setOwnership(OWNER);
+
+        DFAgentDescription dfd = new DFAgentDescription();
+        dfd.addServices(sd);
+        dfd.setName(this.getAID());
+        try {
+            DFService.register(this, dfd);
+            log("Registered to the DF");
+            return true;
+        } catch (FIPAException e) {
+            System.err.println(getLocalName() + " failed registration to DF [ko]. Reason: " + e.getMessage());
+            doDelete();
+        }        
+        return false;
+    }
+
+    @Override
+    protected void setup() {
+        super.setup(); //To change body of generated methods, choose Tools | Templates.
+                /* ** Very Important Line (VIL) ************************************* */
+        this.setEnabledO2ACommunication(true, 1);
+    }
+    
+    
     
 }

@@ -19,7 +19,6 @@ package cat.urv.imas.map;
 
 import cat.urv.imas.gui.CellVisualizer;
 import cat.urv.imas.onthology.InfoAgent;
-import java.util.Set;
 
 /**
  * This class keeps information about a street cell in the map.
@@ -31,20 +30,14 @@ public class StreetCell extends Cell {
      */
     private InfoAgent agent = null;
 
-    /*
-     * Valid directions
-     */
-    private Set<Coordinates> validDirections;
-
     /**
      * Builds a cell with a given type.
      *
      * @param row row number.
      * @param col column number.
      */
-    public StreetCell(int row, int col, Set<Coordinates> directions) {
+    public StreetCell(int row, int col) {
         super(CellType.STREET, row, col);
-        setValidDirections(directions);
     }
 
     /* ********************************************************************** */
@@ -55,25 +48,6 @@ public class StreetCell extends Cell {
      */
     public boolean isThereAnAgent() {
         return (agent != null);
-    }
-
-    /*
-     * debug function
-     */
-    private void printValidDirections() {
-        System.out.println("Coordinates");
-        for(Coordinates direction : validDirections) {
-            if(direction == Coordinates.NORTH)
-                System.out.println("NORTH");
-            else if(direction == Coordinates.SOUTH)
-                System.out.println("SOUTH");
-            else if(direction == Coordinates.EAST)
-                System.out.println("EAST");
-            else if(direction == Coordinates.WEST)
-                System.out.println("WEST");
-            else
-                System.out.println("UNKNOWN");
-        }
     }
 
     /**
@@ -92,29 +66,18 @@ public class StreetCell extends Cell {
         }
         // if everything is OK, we add the new agent to the cell
         this.agent = newAgent;
-        //printValidDirections();
-        Coordinates direction = validDirections.iterator().next();
-        this.agent.setDirection(direction);
     }
 
-    public void setValidDirections(Set<Coordinates> directions) {
-        this.validDirections = directions;
-    }
-
-    public Set<Coordinates> getValidDirections() {
-        return this.validDirections;
-    }
-
-    public void removeAgent(InfoAgent oldInfoAgent) throws Exception {
+    public void removeAgent() throws Exception {
         //System.out.println("Remove an agent to " + this.toString());
         if (!this.isThereAnAgent()) {
             throw new Exception("There is no agent in cell");
         }
-        if (oldInfoAgent == null) {
+        /*if (oldInfoAgent == null) {
             throw new Exception("No valid agent to be remove (null).");
-        } else if (!agent.equals(oldInfoAgent)) {
+        } else if (!oldInfoAgent.equals(agent)) {
             throw new Exception("No matching agent to be remove.");
-        }
+        }*/
         // if everything is OK, we remove the agent from the cell
         this.agent = null;
     }

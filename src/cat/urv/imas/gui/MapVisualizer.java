@@ -120,7 +120,7 @@ public class MapVisualizer extends JPanel implements CellVisualizer {
         // 5. unsetting graphics
         this.updateGraphics(null);
         // 6. painting reinforcement
-        //this.repaint(); //It's not necesary. The map will be painted on each step
+        this.repaint();
     }
 
     protected void clear(Graphics g) {

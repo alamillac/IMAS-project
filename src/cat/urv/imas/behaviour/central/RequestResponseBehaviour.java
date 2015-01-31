@@ -25,7 +25,6 @@ import cat.urv.imas.agent.CentralAgent;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.map.StreetCell;
 import cat.urv.imas.onthology.MessageContent;
-import cat.urv.imas.utils.MessageType;
 import java.util.List;
 import java.util.Map;
 
@@ -48,14 +47,10 @@ public class RequestResponseBehaviour extends AchieveREResponder {
         agent.log("Waiting REQUESTs from authorized agents");
     }
 
-    RequestResponseBehaviour(CentralAgent centralAgent) {
-        super(centralAgent, null);
-    }
-
     /**
      * When Central Agent receives a REQUEST message, it agrees. Only if
      * message type is AGREE, method prepareResultNotification() will be invoked.
-     *
+     * 
      * @param msg message received.
      * @return AGREE message when all was ok, or FAILURE otherwise.
      */
@@ -64,12 +59,10 @@ public class RequestResponseBehaviour extends AchieveREResponder {
         CentralAgent agent = (CentralAgent)this.getAgent();
         ACLMessage reply = msg.createReply();
         try {
-            MessageContent mc = (MessageContent) msg.getContentObject();
-            switch(mc.getMessageType()) {
-                case REQUEST_CITY_STATUS:
-                    agent.log("Request received");
-                    reply.setPerformative(ACLMessage.AGREE);
-                    break;
+            Object content = (Object) msg.getContent();
+            if (content.equals(MessageContent.GET_MAP)) {
+                agent.log("Request received");
+                reply.setPerformative(ACLMessage.AGREE);
             }
         } catch (Exception e) {
             reply.setPerformative(ACLMessage.FAILURE);
@@ -83,10 +76,10 @@ public class RequestResponseBehaviour extends AchieveREResponder {
     /**
      * After sending an AGREE message on prepareResponse(), this behaviour
      * sends an INFORM message with the whole game settings.
-     *
+     * 
      * NOTE: This method is called after the response has been sent and only when one
      * of the following two cases arise: the response was an agree message OR no
-     * response message was sent.
+     * response message was sent. 
      *
      * @param msg ACLMessage the received message
      * @param response ACLMessage the previously sent response message
@@ -95,26 +88,6 @@ public class RequestResponseBehaviour extends AchieveREResponder {
      */
     @Override
     protected ACLMessage prepareResultNotification(ACLMessage msg, ACLMessage response) {
-        CentralAgent agent = (CentralAgent)this.getAgent();
-        ACLMessage reply = null;
-
-        try {
-            MessageContent mc = (MessageContent) msg.getContentObject();
-            switch(mc.getMessageType()) {
-                case REQUEST_CITY_STATUS:
-                    reply = sendGameStatus(msg);
-                    break;
-            }
-        } catch (Exception e) {
-            reply.setPerformative(ACLMessage.FAILURE);
-            agent.errorLog(e.getMessage());
-            e.printStackTrace();
-        }
-
-        return reply;
-    }
-
-    private ACLMessage sendGameStatus(ACLMessage msg) {
 
         // it is important to make the createReply in order to keep the same context of
         // the conversation
@@ -122,14 +95,8 @@ public class RequestResponseBehaviour extends AchieveREResponder {
         ACLMessage reply = msg.createReply();
         reply.setPerformative(ACLMessage.INFORM);
 
-        Map<String, Object> stepData = agent.simulationStep(); //update the game
-        stepData.put("game", agent.getGame());
-
-        agent.updateGUI(); //update gui
-
         try {
-            MessageContent mc = new MessageContent(MessageType.INFORM_CITY_STATUS, stepData);
-            reply.setContentObject(mc);
+            reply.setContentObject(agent.getGame());
         } catch (Exception e) {
             reply.setPerformative(ACLMessage.FAILURE);
             agent.errorLog(e.toString());
@@ -137,6 +104,7 @@ public class RequestResponseBehaviour extends AchieveREResponder {
         }
         agent.log("Game settings sent");
         return reply;
+
     }
 
     /**

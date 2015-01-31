@@ -72,15 +72,6 @@ public class BuildingCell extends Cell {
         return this.numberOfCitizens;
     }
 
-    /*
-     * kill all the citizens in the building
-     */
-    public int killCitizens() {
-        int killedCitizens = this.numberOfCitizens;
-        this.numberOfCitizens = 0;
-        return killedCitizens;
-    }
-
     /**
      * Tries to take up to the number of "citizens" from the building, and
      * informs the real taken number of citizens if there are less than

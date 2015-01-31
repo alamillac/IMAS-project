@@ -23,15 +23,14 @@ import java.io.Serializable;
 /**
  * Content messages for inter-agent communication.
  */
-public class MessageContent implements Serializable {
-
+public class MessageContent implements Serializable{
+    
     /**
      * Message sent from Coordinator agent to Central agent to get the whole
      * city information.
      */
     public static final String GET_MAP = "Get map";
-    public static final String DONE = "I am done";
-    
+
     private MessageType messageType;
     private Object content;
 
@@ -57,6 +56,6 @@ public class MessageContent implements Serializable {
 
     public void setMessageType(MessageType messageType) {
         this.messageType = messageType;
-    }
-
+    }    
+    
 }

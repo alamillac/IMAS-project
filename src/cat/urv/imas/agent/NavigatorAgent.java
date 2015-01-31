@@ -10,15 +10,9 @@ import cat.urv.imas.map.StreetCell;
 import cat.urv.imas.onthology.GameSettings;
 import org.newdawn.slick.util.pathfinding.Path;
 import cat.urv.imas.utils.Utils;
-import jade.domain.FIPAAgentManagement.ServiceDescription;
-import jade.lang.acl.ACLMessage;
-import cat.urv.imas.onthology.MessageContent;
-import cat.urv.imas.utils.MessageType;
 import cat.urv.imas.map.CellType;
 import cat.urv.imas.utils.NavigatorStatus;
 
-import jade.core.AID;
-import jade.domain.FIPANames.InteractionProtocol;
 
 /**
  *
@@ -123,13 +117,13 @@ public abstract class NavigatorAgent extends ImasAgent {
 
     @Override
     protected void setup() {
-        /* ** Very Important Line (VIL) ************************************* */
-        this.setEnabledO2ACommunication(true, 1);
+        
+        super.setup();
+        
+        Object[] args = this.getArguments();
 
-         Object[] args = this.getArguments();
-
-         this.agentPosition = (Cell)args[0];
-         this.game = (GameSettings)args[1];
+        this.agentPosition = (Cell)args[1];
+        this.game = (GameSettings)args[0];
     }
 
     public void setGame(GameSettings game) {
@@ -147,6 +141,7 @@ public abstract class NavigatorAgent extends ImasAgent {
     public Cell getAgentPosition() {
         return agentPosition;
     }
+    
 
     public void setTargetPosition(Cell targetPosition) {
         this.targetPosition = targetPosition;
