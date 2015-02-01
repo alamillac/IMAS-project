@@ -26,6 +26,7 @@ import cat.urv.imas.map.Cell;
 import cat.urv.imas.map.StreetCell;
 import cat.urv.imas.onthology.MessageContent;
 import cat.urv.imas.utils.MessageType;
+import jade.core.AID;
 import java.util.List;
 import java.util.Map;
 
@@ -46,10 +47,6 @@ public class RequestResponseBehaviour extends AchieveREResponder {
     public RequestResponseBehaviour(CentralAgent agent, MessageTemplate mt) {
         super(agent, mt);
         agent.log("Waiting REQUESTs from authorized agents");
-    }
-
-    RequestResponseBehaviour(CentralAgent centralAgent) {
-        super(centralAgent, null);
     }
 
     /**
@@ -102,6 +99,10 @@ public class RequestResponseBehaviour extends AchieveREResponder {
             MessageContent mc = (MessageContent) msg.getContentObject();
             switch(mc.getMessageType()) {
                 case REQUEST_CITY_STATUS:
+                    if(mc.getContent()!=null)
+                    {
+                        agent.updateMoves((Map<AID, Object[]>)mc.getContent());
+                    }
                     reply = sendGameStatus(msg);
                     break;
             }
@@ -124,7 +125,7 @@ public class RequestResponseBehaviour extends AchieveREResponder {
 
         Map<String, Object> stepData = agent.simulationStep(); //update the game
         stepData.put("game", agent.getGame());
-
+       
         agent.updateGUI(); //update gui
 
         try {

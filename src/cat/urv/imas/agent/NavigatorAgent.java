@@ -31,12 +31,18 @@ public abstract class NavigatorAgent extends ImasAgent {
     protected Cell agentPosition;
 
     protected Cell targetPosition;
+    
+    protected Cell targetBuilding;
+
+    
 
     protected Path shortestPath;
 
     protected int currentStep = -1;
 
     protected NavigatorStatus status;
+
+    
 
     public NavigatorAgent(AgentType type) {
         super(type);
@@ -47,23 +53,26 @@ public abstract class NavigatorAgent extends ImasAgent {
     }
 
     public float findShortestPath(Cell tPosition) {
-        tPosition = findFreeCell(tPosition);
+        //tPosition = findFreeCell(tPosition);
         this.shortestPath = Utils.getShortestPath(this.game.getMap(), this.agentPosition, tPosition);
-        this.currentStep = -1;
+        this.currentStep = 0;
         if(this.shortestPath == null)
             return -1;
         return this.shortestPath.getLength();        
     }
     
-    public Cell findFreeCell(Cell tPosition) {
-        for(int i = -1; i<2;i++) {
-            for(int j = -1; j<2;i++) {
+    public Cell findFreeCell(Cell tPosition)
+    {
+        for(int i = -1; i<2;i++)
+        {
+            for(int j = -1; j<2;j++)
+            {
                 try {
-                    if(this.game.get(tPosition.getRow() + i, tPosition.getCol()+ j).getCellType().equals(CellType.STREET)) {
+                    if(this.game.get(tPosition.getRow() + i, tPosition.getCol()+ j).getCellType().equals(CellType.STREET))
+                    {
                         return this.game.get(tPosition.getRow()+i, tPosition.getCol()+j);
                     }
-                } 
-                catch (Exception e) {
+                } catch (Exception e) {
                 }
             }
         }
@@ -95,29 +104,65 @@ public abstract class NavigatorAgent extends ImasAgent {
         return this.shortestPath.getLength();
     }
 
-    protected boolean moveStep() {
+    protected String moveStep() {
         if(this.shortestPath == null) {
-            return false;
+            return "PATH_DONT_EXIST";
         }
 
-        //Already in the target
+        //Already on the target
         if(this.currentStep == this.shortestPath.getLength() - 1 ||
                 (this.agentPosition.getRow() == this.targetPosition.getRow() &&
                 this.agentPosition.getCol() == this.targetPosition.getCol())) {
 
-            return false;
+            return "ON_CELL";
         }
         int s = this.currentStep + 1;
         Path.Step step = shortestPath.getStep(s);
         StreetCell cell =(StreetCell) this.game.get(step.getX(), step.getY());
-        if(!cell.isThereAnAgent()) {
-            this.findShortestPath();
-            return moveStep();
-        }
-        else {
+        //if(cell.isThereAnAgent()) {Working on this
+            //tryToFindNewWay(cell);
+           // this.findShortestPath(); //
+            //return "OK";
+        //}
+       //else {
             this.currentStep = s;
             this.agentPosition = cell;
-            return true;
+            return "OK";
+        //}
+    }
+    
+    private void tryToFindNewWay(StreetCell blockedCell)
+    {
+        int moveX = agentPosition.getCol() - blockedCell.getCol();
+        int moveY = agentPosition.getRow()- blockedCell.getRow();
+        Cell newCell;
+        StreetCell newStreetCell;
+        
+        if(moveX!=0)
+        {
+            
+            newCell = game.get(agentPosition.getRow()+1, agentPosition.getCol());
+            if(newCell.getCellType().equals(CellType.STREET))
+            {
+                newStreetCell = (StreetCell)newCell;
+                if(!newStreetCell.isThereAnAgent()) {
+                 
+                }
+            }
+            
+            newCell = game.get(agentPosition.getRow()-1, agentPosition.getCol());
+            if(newCell.getCellType().equals(CellType.STREET))
+            {
+                newStreetCell = (StreetCell)newCell;
+                if(!newStreetCell.isThereAnAgent()) {
+
+                }
+            }
+            
+        }
+        if(moveY!=0)
+        {
+            
         }
     }
 
@@ -155,7 +200,7 @@ public abstract class NavigatorAgent extends ImasAgent {
     public Cell getTargetPosition() {
         return targetPosition;
     }
-
+    
     public NavigatorStatus getStatus() {
         return status;
     }
@@ -164,6 +209,12 @@ public abstract class NavigatorAgent extends ImasAgent {
         this.status = status;
     }
     
-    
+    public Cell getTargetBuilding() {
+        return targetBuilding;
+    }
 
+    public void setTargetBuilding(Cell targetBuilding) {
+        this.targetBuilding = targetBuilding;
+    }
+    
 }

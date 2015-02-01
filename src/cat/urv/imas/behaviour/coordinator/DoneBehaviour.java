@@ -11,11 +11,15 @@ import jade.lang.acl.ACLMessage;
 import jade.domain.FIPANames.InteractionProtocol;
 import jade.core.AID;
 import jade.lang.acl.UnreadableException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class DoneBehaviour extends CyclicBehaviour {
 
+    private Map<AID, Object[]> firemanMove;
+    
     public void action() {
         MessageTemplate mt =  MessageTemplate.MatchPerformative(ACLMessage.INFORM);
         ACLMessage msg = myAgent.receive(mt);
@@ -38,6 +42,15 @@ public class DoneBehaviour extends CyclicBehaviour {
                 }
                 else if(sender.equals(agent.getFiremenCoordAgent())) {
                     agent.log("Message received from firemen: Done");
+                    
+                    if(mc.getContent()!= null) // because in initial state we send null
+                    {
+                        firemanMove = new HashMap<>();
+                        firemanMove = (Map<AID, Object[]>)mc.getContent();
+                    }else
+                    {
+                        firemanMove = null;
+                    }
                     agent.setFiremenDone(true);
                 }
 
@@ -60,12 +73,12 @@ public class DoneBehaviour extends CyclicBehaviour {
 
                         //delay
                         try {
-                            Thread.sleep(4000);
+                            Thread.sleep(100);
                         } catch (Exception e) {
                             agent.errorLog(e.toString());
                         }
 
-                        agent.requestCtyStatus();
+                        agent.requestCtyStatus(firemanMove);
                     }
                     else {
                         //we don't send more messages

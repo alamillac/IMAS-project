@@ -33,6 +33,7 @@ import cat.urv.imas.utils.MessageType;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPANames;
 import cat.urv.imas.map.BuildingCell;
+import java.util.List;
 
 /**
  * Behaviour for the Coordinator agent to deal with AGREE messages.
@@ -84,11 +85,14 @@ public class RequesterBehaviour extends AchieveREInitiator {
 
                     GameSettings game = (GameSettings) stepData.get("game");  //delete this?
                     Map<BuildingCell, Integer> newFires = (Map<BuildingCell, Integer>) stepData.get("new_fires");
-
+                    List<BuildingCell> removeFire = (List<BuildingCell>) stepData.get("remove_fire");
+                    
+                    
+                    
                     agent.setNewFires(newFires);
-                    agent.setGame(game); //this could be deleted?
+                    agent.setGame(game); 
                     agent.log(game.getShortString());
-                    agent.informFirmenCoordinator();
+                    agent.informFirmenCoordinator(removeFire);
                     agent.informHospitalCoordinator();
                     break;
             }

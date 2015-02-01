@@ -20,13 +20,8 @@ import org.newdawn.slick.util.pathfinding.TileBasedMap;
  */
 public final class Utils {
     public static Path getShortestPath(final Cell[][] map, final Cell source, final Cell target) {
-        return getShortestPath(map, source, target, false);
-    }
-    
-    public static Path getShortestPath(final Cell[][] map, final Cell source, final Cell target, boolean withPrivateVehicle) {
         
         int maxSearchDistance = map.length * map[0].length;
-        //System.out.println(map.length);
         
         TileBasedMap tileMap = new TileBasedMap() {
 
@@ -49,11 +44,9 @@ public final class Utils {
             public boolean blocked(PathFindingContext pfc, int x, int y) {
                 if(map[x][y].getCellType() == CellType.STREET) {
                     StreetCell sc = (StreetCell)map[x][y];
-                    if(withPrivateVehicle) {
-                        return sc.isThereAnAgent();
-                    }
-                    else if(sc.isThereAnAgent()) {
-                        return sc.getAgent().getType() != AgentType.PRIVATE_VEHICLE;
+                    if(sc.isThereAnAgent()) {
+                        //return sc.getAgent().getType() != AgentType.PRIVATE_VEHICLE;
+                        return false; //TODO
                     }
                     else {
                         return false;
@@ -66,10 +59,15 @@ public final class Utils {
             public float getCost(PathFindingContext pfc, int x, int y) {
                 return 1.0F;
             }
+
+            
         };
         
         AStarPathFinder pathFinder = new AStarPathFinder(tileMap, maxSearchDistance, false);
+        
         Path p = pathFinder.findPath(null, source.getRow(), source.getCol(), target.getRow(), target.getCol());
+        //Path p = pathFinder.findPath(null, source.getCol(), source.getRow(), target.getCol(), target.getRow());
+        
         return p;
-    }    
+    }
 }
