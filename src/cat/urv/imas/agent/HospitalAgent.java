@@ -10,15 +10,20 @@ import cat.urv.imas.behaviour.central.RequestResponseBehaviour;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.onthology.GameSettings;
 import cat.urv.imas.onthology.MessageContent;
+import jade.core.AID;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.FailureException;
+import jade.domain.FIPAAgentManagement.NotUnderstoodException;
+import jade.domain.FIPAAgentManagement.RefuseException;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.proto.AchieveREResponder;
+import jade.proto.ContractNetResponder;
 
 /**
  *
@@ -34,6 +39,8 @@ public class HospitalAgent extends ImasAgent{
     private Cell hospitalCell;
     
     private int stepsToHealth;
+    private int maxCapacity;
+    private AID hospitalCoordinator;
 
     
     
@@ -65,11 +72,17 @@ public class HospitalAgent extends ImasAgent{
             doDelete();
         }
         
+        // search CoordinatorAgent
+        ServiceDescription searchCriterion = new ServiceDescription();
+        searchCriterion.setType(AgentType.COORDINATOR.toString());
+        this.hospitalCoordinator = UtilsAgents.searchAgent(this, searchCriterion);        
+        
         //Set the arguments we get from central agent
         Object[] arg = this.getArguments();
         this.setGame((GameSettings)arg[0]);
         this.setStepsToHealth((int)arg[1]);
         this.setHospitalCell((Cell)arg[2]);
+        this.maxCapacity = (int) arg[3];
         
         //addBehaviour(new CyclicBehaviour(this)
         //{
@@ -86,8 +99,33 @@ public class HospitalAgent extends ImasAgent{
         //}
         //);
         
+        this.addBehaviour(new ContractNetResponder(this, MessageTemplate.MatchSender(this.hospitalCoordinator)) {
+
+            private AID ambulanceWinner;
+            
+            
+            @Override
+            protected ACLMessage handleCfp(ACLMessage cfp) throws RefuseException, FailureException, NotUnderstoodException {
+                return super.handleCfp(cfp); //To change body of generated methods, choose Tools | Templates.
+            }
+
+            @Override
+            protected ACLMessage handleAcceptProposal(ACLMessage cfp, ACLMessage propose, ACLMessage accept) throws FailureException {
+                return super.handleAcceptProposal(cfp, propose, accept); //To change body of generated methods, choose Tools | Templates.
+            }
+
+            @Override
+            protected void handleRejectProposal(ACLMessage cfp, ACLMessage propose, ACLMessage reject) {
+                super.handleRejectProposal(cfp, propose, reject); //To change body of generated methods, choose Tools | Templates.
+            }
+            
+            
+            
+        });
         
     }
+    
+    
     
     /**
      * Update the game settings.

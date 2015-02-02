@@ -8,6 +8,7 @@ import static cat.urv.imas.agent.ImasAgent.OWNER;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.onthology.GameSettings;
 import jade.core.*;
+import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
@@ -57,6 +58,14 @@ public class AmbulanceAgent extends NavigatorAgent {
         //this.setGame((GameSettings)arg[1]);
         this.setAmbulanceLoadingSpeed((int)arg[2]);
         this.setPeoplePerAmbulance((int)arg[3]);
+        
+        this.addBehaviour(new CyclicBehaviour() {
+
+            @Override
+            public void action() {
+                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            }
+        });
 
     }
 
