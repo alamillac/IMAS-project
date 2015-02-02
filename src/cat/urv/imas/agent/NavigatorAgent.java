@@ -147,6 +147,7 @@ public abstract class NavigatorAgent extends ImasAgent {
                 newStreetCell = (StreetCell)newCell;
                 if(!newStreetCell.isThereAnAgent()) {
                     agentPosition = newCell;
+                    return;
                 }
             }
             
@@ -156,29 +157,35 @@ public abstract class NavigatorAgent extends ImasAgent {
                 newStreetCell = (StreetCell)newCell;
                 if(!newStreetCell.isThereAnAgent()) {
                     agentPosition = newCell;
+                    return;
                 }
             }
+            
             
         }
         if(moveY!=0)
         {
-            newCell = game.get(agentPosition.getRow(), agentPosition.getCol()+1);
-            if(newCell.getCellType().equals(CellType.STREET))
-            {
-                newStreetCell = (StreetCell)newCell;
-                if(!newStreetCell.isThereAnAgent()) {
-                    agentPosition = newCell;
-                }
-            }
-            
             newCell = game.get(agentPosition.getRow(), agentPosition.getCol()-1);
             if(newCell.getCellType().equals(CellType.STREET))
             {
                 newStreetCell = (StreetCell)newCell;
                 if(!newStreetCell.isThereAnAgent()) {
                     agentPosition = newCell;
+                    return;
                 }
             }
+            
+            newCell = game.get(agentPosition.getRow(), agentPosition.getCol()+1);
+            if(newCell.getCellType().equals(CellType.STREET))
+            {
+                newStreetCell = (StreetCell)newCell;
+                if(!newStreetCell.isThereAnAgent()) {
+                    agentPosition = newCell;
+                    return;
+                }
+            }
+            
+            
         }
     }
 

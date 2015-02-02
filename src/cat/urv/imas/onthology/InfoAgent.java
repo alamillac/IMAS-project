@@ -194,7 +194,7 @@ public class InfoAgent implements java.io.Serializable {
                 System.err.println("there was a problem by adding one agent");
                 System.err.println(e.getMessage());
                 ((StreetCell)actualPosition).addAgent(this);
-                return actualPosition;
+                 return actualPosition;
             }
             setDirection(toDirection);
         }

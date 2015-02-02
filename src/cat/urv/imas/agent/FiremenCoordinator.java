@@ -119,7 +119,7 @@ public class FiremenCoordinator extends ImasAgent{
                                             Object[] messageRecived = (Object[])mc.getContent();
                                             GameSettings game = (GameSettings)messageRecived[0];
                                             ACLMessage initialRequest = new ACLMessage(ACLMessage.INFORM);
-                                            if(messageRecived[1]!=null)
+                                            if((messageRecived[1]!=null)&&(!((List<BuildingCell>)messageRecived[1]).isEmpty()))
                                             {
                                                 removeFire((List<BuildingCell>)messageRecived[1]);
                                             }
@@ -226,22 +226,23 @@ public class FiremenCoordinator extends ImasAgent{
 
     private void removeFire(List<BuildingCell> list)
     {
+        List<BuildingCell> removeList = new ArrayList<>();
         for(BuildingCell cl : list)
         {
             for(BuildingCell fireCell : firesTakenCareOf.keySet()) // we new fires to temporary map 
             {
                 if(fireCell.getCol()==cl.getCol()&&fireCell.getRow()==cl.getRow())
                 {
-                    list.remove(cl);
-                    list.add(fireCell);
+                    removeList.add(fireCell);
                 }
             }
             
         }
-        for(BuildingCell cl : list)
+        for(BuildingCell cl : removeList)
         {
             firesTakenCareOf.remove(cl);
         }
+        list.clear();
         
     }
     /*
