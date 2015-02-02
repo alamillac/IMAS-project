@@ -59,6 +59,8 @@ public class CentralAgent extends ImasAgent {
     private GraphicInterface gui;
     
     private List<BuildingCell> firemoveFire ;
+    
+    private List<Cell> agentCellsToRemove;//old agents positions 
 
     /**
      * Game settings. At the very beginning, it will contain the loaded
@@ -166,12 +168,15 @@ public class CentralAgent extends ImasAgent {
     //update map 
     public void updateMoves(Map<AID, Object[]> moves)
     {
+        agentCellsToRemove = new ArrayList<>();
+        
         
         Map<AgentType, List<Cell>> agentList = game.getAgentList();
         Map<BuildingCell, Integer> firemap = game.getFireList();
         List<Cell> FiremanPositions = agentList.get(AgentType.FIREMAN);
         List<Cell> newFiremanPositions = new ArrayList();
         firemoveFire = new ArrayList<>();
+        //Cell[][] currentMap = this.game.getMap();
         
        
         
@@ -184,19 +189,55 @@ public class CentralAgent extends ImasAgent {
                 case WAITING:
                     break;
                 case MOVE:
+                    
+                   /* for (Cell[] cl : currentMap) {
+                        for (Cell c : cl) {
+                            if (c instanceof StreetCell) {
+                                StreetCell sc = (StreetCell)c;
+                                try {
+                                    if (sc.isThereAnAgent()) {
+                                        
+                                        
+                                        
+                                        sc.removeAgentt();
+                                    }
+                                } catch (Exception ex) {
+                                    Logger.getLogger(CentralAgent.class.getName()).log(Level.SEVERE, null, ex);
+                                }
+                            }
+                        }
+                    }*/
+                    
+                    
                     for(int i = 0; i < FiremanPositions.size(); i++) // we find that agent in list (there must be faster way)
                     {
                         Cell tmpOld = (Cell)value[1];
                         Cell tmpNew = (Cell)value[2];
                         if((FiremanPositions.get(i).getCol()==tmpOld.getCol())&&(FiremanPositions.get(i).getRow()==tmpOld.getRow())){
-
+                            
                             InfoAgent firemen = ((StreetCell)FiremanPositions.get(i)).getAgent();
-                            Cell newPosition = null;
+                            agentCellsToRemove.add(FiremanPositions.get(i));
+                            /*StreetCell oldCell = ((StreetCell)FiremanPositions.get(i));
+                            
+                            
                             try {
+                                oldCell.removeAgentt();
+                               // ((StreetCell)FiremanPositions.get(i)).removeAgent(firemen);
+                            } catch (Exception ex) {
+                                Logger.getLogger(CentralAgent.class.getName()).log(Level.SEVERE, null, ex);
+                            }*/
+                            
+                            Cell newPosition = null;//(StreetCell)game.get(tmpNew.getRow(), tmpNew.getCol());
+                            //InfoAgent newfiremen = ((StreetCell)FiremanPositions.get(i)).getAgent();
+                            try {
+                                
+                                //(StreetCell)newPosition).addAgent(firemen);
                                 newPosition = firemen.move(game.getMap(), tmpOld, getDirectionOfMovement(tmpOld, tmpNew));
+                               // newPosition.addAgent(new InfoAgent(AgentType.FIREMAN, key));
                             } catch (Exception ex) {
                                 Logger.getLogger(CentralAgent.class.getName()).log(Level.SEVERE, null, ex);
                             }
+                            
 
                             FiremanPositions.remove(i);
                             FiremanPositions.add(newPosition);
@@ -228,12 +269,8 @@ public class CentralAgent extends ImasAgent {
                           
                         }
                     }
-                    
-                    
-                    
                     }
                     break;
-                    
             }
             
         }
@@ -254,6 +291,18 @@ public class CentralAgent extends ImasAgent {
         
         agentList.put(AgentType.FIREMAN, FiremanPositions);
         
+        for(Cell toremove : agentCellsToRemove)
+        {
+            StreetCell tmpCell = (StreetCell)game.get(toremove.getRow(), toremove.getCol());
+            try {
+                tmpCell.removeAgentt();
+            } catch (Exception ex) {
+                Logger.getLogger(CentralAgent.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+        }
+        
+        agentCellsToRemove.clear();
         
         
         /*long randomSeed = game.getSeed();

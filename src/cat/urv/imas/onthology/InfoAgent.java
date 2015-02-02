@@ -179,7 +179,7 @@ public class InfoAgent implements java.io.Serializable {
         }
 
         if(newPosition != null && newPosition.getCellType() == CellType.STREET && ((StreetCell)newPosition).getAgent() == null) {
-            //if the street is empty
+           // if the street is empty
             try {
                 ((StreetCell)actualPosition).removeAgent(this);
             } catch (Exception e) {

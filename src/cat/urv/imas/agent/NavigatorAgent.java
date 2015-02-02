@@ -119,16 +119,16 @@ public abstract class NavigatorAgent extends ImasAgent {
         int s = this.currentStep + 1;
         Path.Step step = shortestPath.getStep(s);
         StreetCell cell =(StreetCell) this.game.get(step.getX(), step.getY());
-        //if(cell.isThereAnAgent()) {Working on this
-            //tryToFindNewWay(cell);
-           // this.findShortestPath(); //
-            //return "OK";
-        //}
-       //else {
+        if(cell.isThereAnAgent()) {//Working on this
+            tryToFindNewWay(cell);
+            this.findShortestPath(); //
+            return "OK";
+        }
+       else {
             this.currentStep = s;
             this.agentPosition = cell;
             return "OK";
-        //}
+        }
     }
     
     private void tryToFindNewWay(StreetCell blockedCell)
@@ -146,7 +146,7 @@ public abstract class NavigatorAgent extends ImasAgent {
             {
                 newStreetCell = (StreetCell)newCell;
                 if(!newStreetCell.isThereAnAgent()) {
-                 
+                    agentPosition = newCell;
                 }
             }
             
@@ -155,14 +155,30 @@ public abstract class NavigatorAgent extends ImasAgent {
             {
                 newStreetCell = (StreetCell)newCell;
                 if(!newStreetCell.isThereAnAgent()) {
-
+                    agentPosition = newCell;
                 }
             }
             
         }
         if(moveY!=0)
         {
+            newCell = game.get(agentPosition.getRow(), agentPosition.getCol()+1);
+            if(newCell.getCellType().equals(CellType.STREET))
+            {
+                newStreetCell = (StreetCell)newCell;
+                if(!newStreetCell.isThereAnAgent()) {
+                    agentPosition = newCell;
+                }
+            }
             
+            newCell = game.get(agentPosition.getRow(), agentPosition.getCol()-1);
+            if(newCell.getCellType().equals(CellType.STREET))
+            {
+                newStreetCell = (StreetCell)newCell;
+                if(!newStreetCell.isThereAnAgent()) {
+                    agentPosition = newCell;
+                }
+            }
         }
     }
 
