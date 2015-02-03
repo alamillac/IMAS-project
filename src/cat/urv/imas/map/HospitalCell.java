@@ -77,6 +77,12 @@ public class HospitalCell extends Cell {
         return usedBeds == capacity;
     }
 
+    public int getCapacity() {
+        return capacity;
+    }
+    
+    
+
     /**
      * Tells the ratio (from 0 to 100) of the number of beds in use.
      *
@@ -86,6 +92,14 @@ public class HospitalCell extends Cell {
         return 0;
     }
 
+        public int getUsedBeds() {
+        return usedBeds;
+    }
+    
+    public int getAvaliableBeds() {
+        return capacity - usedBeds;
+    }
+    
     /* ***************** Map visualization API ********************************/
     @Override
     public void draw(CellVisualizer visual) {

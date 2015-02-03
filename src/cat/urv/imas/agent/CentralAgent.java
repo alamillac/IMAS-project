@@ -28,6 +28,7 @@ import cat.urv.imas.map.Cell;
 import cat.urv.imas.map.StreetCell;
 import cat.urv.imas.map.BuildingCell;
 import cat.urv.imas.map.Coordinates;
+import cat.urv.imas.map.HospitalCell;
 import cat.urv.imas.utils.MessageType;
 import jade.core.*;
 import jade.domain.*;
@@ -363,10 +364,14 @@ public class CentralAgent extends ImasAgent {
 
         //building on fire if it don't have fire
         if(building != null && ! building.isOnFire()) {
+            
             Map<BuildingCell, Integer> firemap = game.getFireList();
             firemap.put(building, fireSpeed);
             newFire.put(building, fireSpeed);
         }
+        
+        game.setCurrentBuildingFire(building);
+        
         return newFire;
     }
 

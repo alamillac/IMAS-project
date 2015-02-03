@@ -29,6 +29,9 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.wrapper.AgentContainer;
 import jade.wrapper.AgentController;
 import jade.wrapper.StaleProxyException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Utility class for agents.
@@ -81,6 +84,37 @@ public class UtilsAgents {
         }
         return searchedAgent;
     }
+    
+    public static List<AID> searchAgents(Agent parent, ServiceDescription sd) {
+        /**
+         * Searching an agent of the specified type
+         */
+        AID searchedAgent = new AID();
+        List<AID> results = new ArrayList<>();
+        DFAgentDescription dfd = new DFAgentDescription();
+        dfd.addServices(sd);
+        try {
+            while (true) {
+                SearchConstraints c = new SearchConstraints();
+                c.setMaxResults(new Long(-1));
+                DFAgentDescription[] result = DFService.search(parent, dfd, c);
+                if (result.length > 0) {
+                    Arrays.asList(result).forEach(r -> {
+                        results.add(r.getName());
+                    });
+                    
+                    break;
+                }
+                Thread.sleep(DELAY);
+
+            }
+        } catch (Exception fe) {
+            System.err.println("ERROR: Cannot search the expected agent from parent " + parent.getLocalName());
+            fe.printStackTrace();
+            parent.doDelete();
+        }
+        return results;
+    }    
 
     /**
      * To create an agent in a given container

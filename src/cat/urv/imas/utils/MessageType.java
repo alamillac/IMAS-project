@@ -23,7 +23,8 @@ public enum MessageType {
     REQUEST_STEP(10),
     WAITING(11), //agent is waiting for instructions
     ON_BUILDING(12), // aghent is on building
-    MOVE(13); //agent made move
+    MOVE(13), //agent made move
+    TAKE_INJURED(14);
 
     private int value;
 

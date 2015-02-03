@@ -98,6 +98,8 @@ public class GameSettings implements java.io.Serializable {
      * List of the buildings on the map
      */
     protected List<BuildingCell> buildingList;
+    
+    private BuildingCell currentBuildingFire = null;
 
 
     public long getSeed() {
@@ -224,6 +226,18 @@ public class GameSettings implements java.io.Serializable {
 
     public List<BuildingCell> getBuildingList() {
         return buildingList;
+    }
+
+    public BuildingCell getCurrentBuildingFire() {
+        return currentBuildingFire;
+    }
+
+    public void setCurrentBuildingFire(BuildingCell currentBuildingFire) {
+        this.currentBuildingFire = currentBuildingFire;
+    }
+    
+    public boolean isNewFireAppeard() {
+        return this.currentBuildingFire != null;
     }
 
     public String toString() {

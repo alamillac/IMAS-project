@@ -23,9 +23,12 @@ import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
 import jade.proto.AchieveREResponder;
+import jade.proto.ContractNetInitiator;
 import jade.wrapper.AgentContainer;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -46,6 +49,8 @@ public class HospitalCoordinator extends ImasAgent{
      * Game settings in use. So we can get city map 
      */
     private GameSettings game;
+    
+    private List<AID> hospitalAgents;
     
     
     public HospitalCoordinator() {
@@ -96,6 +101,10 @@ public class HospitalCoordinator extends ImasAgent{
         searchCriterion.setType(AgentType.COORDINATOR.toString());
         this.coordinatorAgent = UtilsAgents.searchAgent(this, searchCriterion);
 
+        searchCriterion = new ServiceDescription();
+        searchCriterion.setType(AgentType.HOSPITAL.toString());
+        this.hospitalAgents = UtilsAgents.searchAgents(this, searchCriterion);
+        
         addBehaviour(new CyclicBehaviour(this)
         {
             @Override
@@ -113,18 +122,11 @@ public class HospitalCoordinator extends ImasAgent{
                                         GameSettings game = (GameSettings)mc.getContent();
                                         ACLMessage initialRequest = new ACLMessage(ACLMessage.INFORM);
                                         initialRequest.clearAllReceiver();
-                                        ServiceDescription searchCriterion = new ServiceDescription();
-                                        searchCriterion.setType(AgentType.HOSPITAL.toString());  
-                                        Map<AgentType, List<Cell>> a = game.getAgentList();
-                                        List<Cell> HOS = a.get(AgentType.HOSPITAL);
-
-                                        int i = 1;
-                                        for (Cell h : HOS) {
-                                            searchCriterion.setName("hospitalAgent" + i);
-                                            initialRequest.addReceiver(UtilsAgents.searchAgent(this.myAgent, searchCriterion));
-                                            i++;
-                                        }
-
+                                        
+                                        hospitalAgents.forEach(ha ->{
+                                            initialRequest.addReceiver(ha);
+                                        });
+                                        
                                        try {
 
                                            initialRequest.setContentObject(new MessageContent(MessageType.INFORM_CITY_STATUS, game));
@@ -133,6 +135,13 @@ public class HospitalCoordinator extends ImasAgent{
                                            e.printStackTrace();
                                        }
                                        this.myAgent.send(initialRequest);                                        
+                                       
+                                       if(game.isNewFireAppeard()) {
+                                           ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
+                                           cfp.setContentObject(new MessageContent(MessageType.NEW_FIRES, game.getCurrentBuildingFire()));
+                                           this.myAgent.addBehaviour(new AuctionManager(myAgent, cfp, game.getCurrentBuildingFire()));
+                                       }
+                                       
                                         break;
                                     default:
                                         this.block();
@@ -143,7 +152,9 @@ public class HospitalCoordinator extends ImasAgent{
 
                             } catch (UnreadableException ex) {
                                 Logger.getLogger(HospitalCoordinator.class.getName()).log(Level.SEVERE, null, ex);
-                            }
+                            } catch (IOException ex) {
+                        Logger.getLogger(HospitalCoordinator.class.getName()).log(Level.SEVERE, null, ex);
+                    }
 
 
 
@@ -174,6 +185,89 @@ public class HospitalCoordinator extends ImasAgent{
      */
     public GameSettings getGame() {
         return this.game;
+    }
+    
+    private class AuctionManager extends ContractNetInitiator {
+
+        
+        private HospitalCoordinator hc = HospitalCoordinator.this;
+        
+        private Cell auctionItem = null;
+        
+        public AuctionManager(Agent a, ACLMessage cfp, Cell auctionItem) {
+            super(a, cfp);
+            this.auctionItem = auctionItem;
+        }
+
+        @Override
+        protected Vector prepareCfps(ACLMessage cfp) {
+            cfp.clearAllReceiver();
+            
+            hc.hospitalAgents.forEach(agent -> {
+                cfp.addReceiver(agent);
+            });
+            
+            Vector v = new Vector();
+            v.add(cfp);
+            if (hc.hospitalAgents.size() > 0)
+               hc.log("Sent Call for Proposal to " + hc.hospitalAgents.size()+" hospitals.");
+            return v;             
+        }
+        
+        
+
+        @Override
+        protected void handleAllResponses(Vector responses, Vector acceptances) {
+            ACLMessage[] bestOffers = new ACLMessage[] { null };
+            int[] bestBids = {Integer.MAX_VALUE};
+            responses.forEach(rsp -> {
+                ACLMessage rspMsg = (ACLMessage)rsp;
+                if(rspMsg.getPerformative() == ACLMessage.PROPOSE) {
+                    try {
+                        
+                        int bid = Integer.parseInt(rspMsg.getContent());
+                        if(bid < bestBids[0] && bid > -1) {
+                            bestBids[0] = bid;
+                            bestOffers[0] = rspMsg;
+                        }
+                    }
+                    catch(Exception ex) {
+                        
+                    }
+                }
+            });
+            
+            responses.forEach(rsp -> {
+                  ACLMessage rspMsg = (ACLMessage)rsp;
+                  ACLMessage accept = rspMsg.createReply();
+                  if(rspMsg == bestOffers[0]) {
+                      accept.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
+                      try {
+                          accept.setContentObject(new MessageContent(MessageType.TAKE_INJURED, this.auctionItem));
+                      }
+                      catch(Exception ex) {
+                          
+                      }
+                  }
+                  else {
+                      accept.setPerformative(ACLMessage.REJECT_PROPOSAL);
+                  }
+                  
+                  acceptances.add(accept);
+            });            
+        }
+
+        @Override
+        protected void handleInform(ACLMessage inform) {
+            super.handleInform(inform); //To change body of generated methods, choose Tools | Templates.
+        }
+        
+        
+        
+        
+        
+        
+        
     }
 
 }

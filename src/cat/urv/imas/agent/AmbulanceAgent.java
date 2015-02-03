@@ -7,12 +7,19 @@ package cat.urv.imas.agent;
 import static cat.urv.imas.agent.ImasAgent.OWNER;
 import cat.urv.imas.map.Cell;
 import cat.urv.imas.onthology.GameSettings;
+import cat.urv.imas.onthology.MessageContent;
+import cat.urv.imas.utils.Utils;
 import jade.core.*;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.UnreadableException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.newdawn.slick.util.pathfinding.Path;
 
 /**
  *
@@ -61,9 +68,49 @@ public class AmbulanceAgent extends NavigatorAgent {
         
         this.addBehaviour(new CyclicBehaviour() {
 
+            private AmbulanceAgent aa = AmbulanceAgent.this;
+            
             @Override
             public void action() {
-                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                ACLMessage msg = null;
+                while((msg = receive()) != null) {
+                    if(msg.getSender().getLocalName().startsWith("hospital")) {
+                        switch(msg.getPerformative()) {
+                            case ACLMessage.CFP:
+                                
+                                ACLMessage reply = msg.createReply();
+                                reply.setPerformative(ACLMessage.PROPOSE);
+                                
+                        
+                                try {
+                                    MessageContent mc = (MessageContent) msg.getContentObject();
+                                    Object[] args = (Object[]) mc.getContent();
+                                    
+                                    Path pathToBuild = Utils.getShortestPath(aa.game.getMap(), aa.agentPosition, (Cell)args[0]);
+                                    Path pathFromBuildToHospital = Utils.getShortestPath(aa.game.getMap(), (Cell)args[0], (Cell)args[1]);
+                                    
+                                    float bid = -1;
+                                    if(pathToBuild != null && pathFromBuildToHospital != null) {
+                                        bid = 1 / (float)pathToBuild.getLength() + 1 / (float) pathFromBuildToHospital.getLength();
+                                    }
+                                    
+                                    reply.setContent(bid + "");
+                                    
+                                    aa.send(reply);
+                                    
+                                } catch (UnreadableException ex) {
+                                    Logger.getLogger(AmbulanceAgent.class.getName()).log(Level.SEVERE, null, ex);
+                                }
+                        
+                                
+                                break;
+                        }
+                    }
+                    else {
+                        this.block();
+                    }
+                }
+                this.block();
             }
         });
 
