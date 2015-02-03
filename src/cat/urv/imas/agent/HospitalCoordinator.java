@@ -27,6 +27,7 @@ import jade.proto.AchieveREResponder;
 import jade.proto.ContractNetInitiator;
 import jade.wrapper.AgentContainer;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
@@ -121,7 +122,7 @@ public class HospitalCoordinator extends ImasAgent{
         searchCriterion = new ServiceDescription();
         searchCriterion.setType(AgentType.AMBULANCE.toString());
         this.ambulances = UtilsAgents.searchAgents(this, searchCriterion);        
-        
+        ambMove = new HashMap<>();
         addBehaviour(new CyclicBehaviour(this)
         {
             @Override
@@ -193,6 +194,7 @@ public class HospitalCoordinator extends ImasAgent{
                                     }
                                     if(ambMove.size()== ambulances.size()) {
                                         informStepCoordinator();
+                                        ambMove = new HashMap<>();
                                     }                                        
                                 }
                             }

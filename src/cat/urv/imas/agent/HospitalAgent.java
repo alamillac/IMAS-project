@@ -30,6 +30,7 @@ import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 import jade.proto.AchieveREResponder;
 import jade.proto.ContractNetResponder;
+import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -118,6 +119,12 @@ public class HospitalAgent extends ImasAgent{
                                 switch(mc.getMessageType()) {
                                     case INFORM_CITY_STATUS:
                                         ha.game = (GameSettings) mc.getContent();
+                                        ACLMessage informMsg = new ACLMessage(ACLMessage.INFORM);
+                                        informMsg.setContentObject(mc);
+                                        ha.ambulanceAgents.forEach(aa ->{
+                                            informMsg.addReceiver(aa);
+                                        });
+                                        ha.send(informMsg);
                                         break;
 
                                 }                                
@@ -132,6 +139,8 @@ public class HospitalAgent extends ImasAgent{
 
                         
                     } catch (UnreadableException ex) {
+                        Logger.getLogger(HospitalAgent.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (IOException ex) {
                         Logger.getLogger(HospitalAgent.class.getName()).log(Level.SEVERE, null, ex);
                     }
                     //System.out.println( " - " +myAgent.getLocalName() + " <- " + msg.getContent() );

@@ -20,13 +20,14 @@ public class DoneBehaviour extends CyclicBehaviour {
 
     private Map<AID, Object[]> firemanMove;
     private Map<AID, Object[]> ambMove;
-    private Map<AID, Object[]> moves ;
+    private Map<AID, Object[]> moves;
+    
     
     public void action() {
         MessageTemplate mt =  MessageTemplate.MatchPerformative(ACLMessage.INFORM);
         ACLMessage msg = myAgent.receive(mt);
 
-        moves = new HashMap<>();
+        
         
         if (msg != null) {
             MessageContent mc = null;
@@ -46,7 +47,7 @@ public class DoneBehaviour extends CyclicBehaviour {
                     {
                         ambMove = new HashMap<>();
                         ambMove = (Map<AID, Object[]>)mc.getContent();
-                        moves.putAll(ambMove);
+                        
                     }else
                     {
                         ambMove = null;
@@ -60,7 +61,7 @@ public class DoneBehaviour extends CyclicBehaviour {
                     {
                         firemanMove = new HashMap<>();
                         firemanMove = (Map<AID, Object[]>)mc.getContent();
-                        moves.putAll(firemanMove);
+                        
                     }else
                     {
                         firemanMove = null;
@@ -94,7 +95,7 @@ public class DoneBehaviour extends CyclicBehaviour {
 
                         
                         
-                        agent.requestCtyStatus(moves);
+                        agent.requestCtyStatus(firemanMove, ambMove);
                     }
                     else {
                         //we don't send more messages

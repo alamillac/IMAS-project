@@ -28,6 +28,7 @@ import jade.domain.*;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPANames.InteractionProtocol;
 import jade.lang.acl.*;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -166,7 +167,7 @@ public class CoordinatorAgent extends ImasAgent {
 
         /* ********************************************************************/
 
-        this.requestCtyStatus(null);
+        this.requestCtyStatus(null, null);
         // setup finished. When we receive the last inform, the agent itself will add
         // a behaviour to send/receive actions
     }
@@ -225,7 +226,7 @@ public class CoordinatorAgent extends ImasAgent {
             e.printStackTrace();
         }
     }
-    public void requestCtyStatus(Map<AID, Object[]> moves) {
+    public void requestCtyStatus(Map<AID, Object[]> fMoves, Map<AID, Object[]> aMoves) {
         ACLMessage initialRequest = new ACLMessage(ACLMessage.REQUEST);
         initialRequest.clearAllReceiver();
         initialRequest.addReceiver(this.centralAgent);
@@ -233,6 +234,13 @@ public class CoordinatorAgent extends ImasAgent {
 
         log("Request message to agent");
         try {
+            HashMap<AID, Object[]> moves = new HashMap<>();
+            if(fMoves != null) { 
+                moves.putAll(fMoves);
+            }
+            if(aMoves != null) {
+                moves.putAll(aMoves);
+            }
             MessageContent mc = new MessageContent(MessageType.REQUEST_CITY_STATUS, moves);
             initialRequest.setContentObject(mc);
             //log("Request message content:" + initialRequest.getContent());
