@@ -221,14 +221,14 @@ public class HospitalCoordinator extends ImasAgent{
         @Override
         protected void handleAllResponses(Vector responses, Vector acceptances) {
             ACLMessage[] bestOffers = new ACLMessage[] { null };
-            int[] bestBids = {Integer.MAX_VALUE};
+            float[] bestBids = {-1};
             responses.forEach(rsp -> {
                 ACLMessage rspMsg = (ACLMessage)rsp;
                 if(rspMsg.getPerformative() == ACLMessage.PROPOSE) {
                     try {
                         
-                        int bid = Integer.parseInt(rspMsg.getContent());
-                        if(bid < bestBids[0] && bid > -1) {
+                        float bid = Float.parseFloat(rspMsg.getContent());
+                        if(bid > bestBids[0]) {
                             bestBids[0] = bid;
                             bestOffers[0] = rspMsg;
                         }
