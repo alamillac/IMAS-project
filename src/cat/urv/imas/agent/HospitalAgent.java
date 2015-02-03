@@ -15,6 +15,8 @@ import cat.urv.imas.utils.MessageType;
 import cat.urv.imas.utils.Utils;
 import jade.core.AID;
 import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.OneShotBehaviour;
+import jade.core.behaviours.SimpleBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.FailureException;
@@ -85,7 +87,7 @@ public class HospitalAgent extends ImasAgent{
         
         // search CoordinatorAgent
         ServiceDescription searchCriterion = new ServiceDescription();
-        searchCriterion.setType(AgentType.COORDINATOR.toString());
+        searchCriterion.setType(AgentType.HOSPITAL_COORDINATOR.toString());
         this.hospitalCoordinator = UtilsAgents.searchAgent(this, searchCriterion); 
         searchCriterion = new ServiceDescription();
         searchCriterion.setType(AgentType.AMBULANCE.toString());
@@ -97,10 +99,12 @@ public class HospitalAgent extends ImasAgent{
         this.setStepsToHealth((int)arg[1]);
         this.hospitalCell = (HospitalCell) arg[2];
         
+
+        
         addBehaviour(new CyclicBehaviour(this) {
             
             private HospitalAgent ha = HospitalAgent.this;
-            private MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM), MessageTemplate.MatchSender(hospitalCoordinator));
+            private MessageTemplate mt = MessageTemplate.MatchSender(hospitalCoordinator);
             
             @Override
             public void action() {
@@ -108,94 +112,152 @@ public class HospitalAgent extends ImasAgent{
                 while ((msg = receive(mt)) != null) {
                     try {
                         
-                        MessageContent mc = (MessageContent) msg.getContentObject();
-                        
-                        switch(mc.getMessageType()) {
-                            case INFORM_CITY_STATUS:
-                                ha.game = (GameSettings) mc.getContent();
-                                break;    
+                        switch (msg.getPerformative()) {
+                            case ACLMessage.INFORM:
+                                MessageContent mc = (MessageContent) msg.getContentObject();
+                                switch(mc.getMessageType()) {
+                                    case INFORM_CITY_STATUS:
+                                        ha.game = (GameSettings) mc.getContent();
+                                        break;
+
+                                }                                
+                                break;
+                            case ACLMessage.CFP:
+                                ha.log("Receive CFP from " + msg.getSender().getLocalName());
+                                ha.addBehaviour(new AuctionResponder(msg));
+                                break;
                         }
+                        
+                        
+
                         
                     } catch (UnreadableException ex) {
                         Logger.getLogger(HospitalAgent.class.getName()).log(Level.SEVERE, null, ex);
                     }
-                    System.out.println( " - " +myAgent.getLocalName() + " <- " + msg.getContent() );
+                    //System.out.println( " - " +myAgent.getLocalName() + " <- " + msg.getContent() );
                 }
                 this.block();
             }
             
-        });
-        
-        this.addBehaviour(new ContractNetResponder(this, MessageTemplate.MatchSender(this.hospitalCoordinator)) {
-
-            private AID ambulanceWinner;
-            private float bestBid;
-            private HospitalAgent ha = HospitalAgent.this;
-            
-            @Override
-            protected ACLMessage handleCfp(ACLMessage cfp) throws RefuseException, FailureException, NotUnderstoodException {
-                
-                ACLMessage reply = cfp.createReply();
-                reply.setPerformative(ACLMessage.PROPOSE);
-                
-                try {
-                    MessageContent mc = (MessageContent) cfp.getContentObject();
-                    Cell cell = (Cell) mc.getContent();
-                    
-                    ACLMessage cfpA = new ACLMessage(ACLMessage.CFP);
-                    cfpA.setContentObject(new MessageContent(MessageType.TAKE_INJURED, new Object[]{ mc.getContent(), ha.hospitalCell }));
-                    ha.ambulanceAgents.forEach(agent -> {
-                        cfpA.addReceiver(agent);
-                    });
-                    
-                    ha.send(cfpA);
-                    
-                    MessageTemplate prpsMt = MessageTemplate.MatchPerformative(ACLMessage.PROPOSE);
-                    int responsesCount = 0;
-                    bestBid = -1;
-                    while(responsesCount <  ha.ambulanceAgents.size()) {
-                        
-                        ACLMessage rspns = null;
-                        while((rspns = receive(prpsMt)) != null ) {
-                            if(rspns.getSender().getLocalName().startsWith("amb")) {
-                                responsesCount++;
-                                float bid = Float.parseFloat(rspns.getContent());
-                                if(bid > bestBid) {
-                                    bestBid = bid;
-                                    ambulanceWinner = rspns.getSender();
-                                }
-                            }
-                        }
-                        this.block();
-                        
-                    }
-                    
-                    float hBid = 1 / ha.hospitalCell.getAvaliableBeds() + bestBid;
-                    
-                    reply.setContent(hBid + "");
-                }
-                catch(Exception ex) {
-
-                }
-
-                return reply;                
-            }
-
-            @Override
-            protected ACLMessage handleAcceptProposal(ACLMessage cfp, ACLMessage propose, ACLMessage accept) throws FailureException {
-                return super.handleAcceptProposal(cfp, propose, accept); //To change body of generated methods, choose Tools | Templates.
-            }
-
-            @Override
-            protected void handleRejectProposal(ACLMessage cfp, ACLMessage propose, ACLMessage reject) {
-                super.handleRejectProposal(cfp, propose, reject); //To change body of generated methods, choose Tools | Templates.
-            }
-            
-            
-            
-        });
+        });        
         
     }
+    
+    private class AuctionResponder extends OneShotBehaviour {
+
+        private AID ambulanceWinner;
+        private float bestBid;
+        private HospitalAgent ha = HospitalAgent.this; 
+        private ACLMessage cfp;
+        
+        private boolean isAcceptedOrRejectedReceived = false;
+        
+        public AuctionResponder(ACLMessage cfp) {
+            this.cfp = cfp;
+        }
+
+        @Override
+        public void action() {
+            
+            
+            ACLMessage reply = handleCFP(cfp);
+            
+            ha.send(reply);
+            
+            while(!isAcceptedOrRejectedReceived) {
+                
+                MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchSender(ha.hospitalCoordinator), 
+                        MessageTemplate.or(MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL), 
+                                MessageTemplate.MatchPerformative(ACLMessage.REJECT_PROPOSAL))
+                        );
+                
+                ACLMessage msg = ha.receive(mt);
+                
+                if(msg != null) {
+                    
+                    isAcceptedOrRejectedReceived = true;
+                    
+                    switch(msg.getPerformative()) {
+                        case ACLMessage.ACCEPT_PROPOSAL:
+                            ha.log(String.format("Accept proposal received from " + msg.getSender().getLocalName()));
+                            this.handleAcceptProposal(msg);
+                            break;
+                        case ACLMessage.REJECT_PROPOSAL:
+                            ha.log(String.format("Reject proposal received from " + msg.getSender().getLocalName()));
+                            this.handleRejectProposal(msg);
+                            break;
+                    }
+                }
+                
+                else {
+                    this.block();
+                }
+            }
+            
+            
+        }
+        
+        private ACLMessage handleCFP(ACLMessage cfp) {
+            ACLMessage reply = cfp.createReply();
+            reply.setPerformative(ACLMessage.PROPOSE);
+
+            try {
+                MessageContent mc = (MessageContent) cfp.getContentObject();
+                Cell cell = (Cell) mc.getContent();
+
+                ha.log(String.format("Start auction with %d aumbulances ", ha.ambulanceAgents.size()));
+                
+                ACLMessage cfpA = new ACLMessage(ACLMessage.CFP);
+                cfpA.setContentObject(new MessageContent(MessageType.TAKE_INJURED, new Object[]{ cell, ha.hospitalCell }));
+                ha.ambulanceAgents.forEach(agent -> {
+                    cfpA.addReceiver(agent);
+                });
+
+                ha.send(cfpA);
+
+                MessageTemplate prpsMt = MessageTemplate.MatchPerformative(ACLMessage.PROPOSE);
+                int responsesCount = 0;
+                bestBid = -1;
+                while(responsesCount <  ha.ambulanceAgents.size()) {
+
+                    ACLMessage rspns = null;
+                    while((rspns = receive(prpsMt)) != null ) {
+                        if(rspns.getSender().getLocalName().startsWith("amb")) {
+                            responsesCount++;
+                            ha.log(String.format("Propose received from %s", rspns.getSender().getLocalName()));
+                            float bid = Float.parseFloat(rspns.getContent());
+                            if(bid > bestBid) {
+                                bestBid = bid;
+                                ambulanceWinner = rspns.getSender();
+                            }
+                        }
+                    }
+                    this.block();
+
+                }
+
+                float hBid = 1 / ha.hospitalCell.getAvaliableBeds() + bestBid;
+
+                reply.setContent(hBid + "");
+            }
+            catch(Exception ex) {
+
+            }
+            
+            return reply;
+        } 
+        
+        private void handleAcceptProposal(ACLMessage msg) {
+            
+        }
+        
+        private void handleRejectProposal(ACLMessage msg) {
+            
+        }
+        
+    }
+    
+    
     
     
     

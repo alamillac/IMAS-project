@@ -235,7 +235,7 @@ public class CoordinatorAgent extends ImasAgent {
         try {
             MessageContent mc = new MessageContent(MessageType.REQUEST_CITY_STATUS, moves);
             initialRequest.setContentObject(mc);
-            log("Request message content:" + initialRequest.getContent());
+            //log("Request message content:" + initialRequest.getContent());
         } catch (Exception e) {
             e.printStackTrace();
         }

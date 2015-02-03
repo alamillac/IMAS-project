@@ -85,9 +85,9 @@ public class AmbulanceAgent extends NavigatorAgent {
                                 try {
                                     MessageContent mc = (MessageContent) msg.getContentObject();
                                     Object[] args = (Object[]) mc.getContent();
-                                    
-                                    Path pathToBuild = Utils.getShortestPath(aa.game.getMap(), aa.agentPosition, (Cell)args[0]);
-                                    Path pathFromBuildToHospital = Utils.getShortestPath(aa.game.getMap(), (Cell)args[0], (Cell)args[1]);
+                                    Cell targetCell = aa.findFreeCell((Cell)args[0]);
+                                    Path pathToBuild = Utils.getShortestPath(aa.game.getMap(), aa.agentPosition, targetCell);
+                                    Path pathFromBuildToHospital = Utils.getShortestPath(aa.game.getMap(), targetCell, aa.findFreeCell((Cell)args[1]));
                                     
                                     float bid = -1;
                                     if(pathToBuild != null && pathFromBuildToHospital != null) {

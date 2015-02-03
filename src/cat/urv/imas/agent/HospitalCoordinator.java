@@ -21,6 +21,7 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 import jade.proto.AchieveREResponder;
 import jade.proto.ContractNetInitiator;
@@ -109,7 +110,7 @@ public class HospitalCoordinator extends ImasAgent{
         {
             @Override
             public void action() {
-                ACLMessage msg = receive();
+                ACLMessage msg = receive(MessageTemplate.and(MessageTemplate.MatchSender(coordinatorAgent), MessageTemplate.MatchPerformative(ACLMessage.INFORM)));
                         if (msg!=null){
                             System.out.println( " - " +
                                myAgent.getLocalName() + " <- " + "game settings rrecived");
@@ -137,9 +138,10 @@ public class HospitalCoordinator extends ImasAgent{
                                        this.myAgent.send(initialRequest);                                        
                                        
                                        if(game.isNewFireAppeard()) {
-                                           ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
-                                           cfp.setContentObject(new MessageContent(MessageType.NEW_FIRES, game.getCurrentBuildingFire()));
-                                           this.myAgent.addBehaviour(new AuctionManager(myAgent, cfp, game.getCurrentBuildingFire()));
+                                            ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
+                                            cfp.setContentObject(new MessageContent(MessageType.NEW_FIRES, game.getCurrentBuildingFire()));
+                                            log(String.format("Start auction with %d", hospitalAgents.size()));
+                                            this.myAgent.addBehaviour(new AuctionManager(myAgent, cfp, game.getCurrentBuildingFire()));
                                        }
                                        
                                         break;

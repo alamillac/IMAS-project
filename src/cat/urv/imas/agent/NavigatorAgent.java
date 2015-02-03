@@ -63,17 +63,20 @@ public abstract class NavigatorAgent extends ImasAgent {
     
     public Cell findFreeCell(Cell tPosition)
     {
-        for(int i = -1; i<2;i++)
-        {
-            for(int j = -1; j<2;j++)
-            {
-                try {
-                    if(this.game.get(tPosition.getRow() + i, tPosition.getCol()+ j).getCellType().equals(CellType.STREET))
-                    {
-                        return this.game.get(tPosition.getRow()+i, tPosition.getCol()+j);
-                    }
-                } catch (Exception e) {
-                }
+        int startRow = tPosition.getRow() - 1;
+        int endRow = tPosition.getRow() + 1;
+        int startCol = tPosition.getCol() - 1;
+        int endCol = tPosition.getCol() + 1;
+        
+        if(startRow < 0) startRow++;
+        if(endRow >= this.game.getMap().length) endRow--;
+        if(startCol < 0) startCol++;
+        if(endCol>= this.game.getMap()[0].length) endCol--;
+        
+        for(int r = startRow; r <= endRow; r++) {
+            for(int c = startCol; c <= endCol; c++) {
+                if(this.game.get(r, c).getCellType().equals(CellType.STREET))
+                    return this.game.get(r, c);
             }
         }
         return null; 
