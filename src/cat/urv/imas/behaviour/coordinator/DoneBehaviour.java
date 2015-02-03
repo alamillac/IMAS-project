@@ -19,11 +19,15 @@ import java.util.logging.Logger;
 public class DoneBehaviour extends CyclicBehaviour {
 
     private Map<AID, Object[]> firemanMove;
+    private Map<AID, Object[]> ambMove;
+    private Map<AID, Object[]> moves ;
     
     public void action() {
         MessageTemplate mt =  MessageTemplate.MatchPerformative(ACLMessage.INFORM);
         ACLMessage msg = myAgent.receive(mt);
 
+        moves = new HashMap<>();
+        
         if (msg != null) {
             MessageContent mc = null;
             try {
@@ -38,6 +42,15 @@ public class DoneBehaviour extends CyclicBehaviour {
 
                 if(sender.equals(agent.getHospitalCoordAgent())) {
                     agent.log("Message received from hospital: Done");
+                    if(mc.getContent()!= null) // because in initial state we send null
+                    {
+                        ambMove = new HashMap<>();
+                        ambMove = (Map<AID, Object[]>)mc.getContent();
+                        moves.putAll(ambMove);
+                    }else
+                    {
+                        ambMove = null;
+                    }                    
                     agent.setHospitalDone(true);
                 }
                 else if(sender.equals(agent.getFiremenCoordAgent())) {
@@ -47,6 +60,7 @@ public class DoneBehaviour extends CyclicBehaviour {
                     {
                         firemanMove = new HashMap<>();
                         firemanMove = (Map<AID, Object[]>)mc.getContent();
+                        moves.putAll(firemanMove);
                     }else
                     {
                         firemanMove = null;
@@ -78,7 +92,9 @@ public class DoneBehaviour extends CyclicBehaviour {
                             agent.errorLog(e.toString());
                         }
 
-                        agent.requestCtyStatus(firemanMove);
+                        
+                        
+                        agent.requestCtyStatus(moves);
                     }
                     else {
                         //we don't send more messages

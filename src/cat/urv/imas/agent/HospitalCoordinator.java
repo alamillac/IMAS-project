@@ -52,6 +52,11 @@ public class HospitalCoordinator extends ImasAgent{
     private GameSettings game;
     
     private List<AID> hospitalAgents;
+    private List<AID> ambulances;
+    
+    private boolean initStep = true;
+    
+     private Map<AID, Object[]> ambMove;
     
     
     public HospitalCoordinator() {
@@ -66,8 +71,15 @@ public class HospitalCoordinator extends ImasAgent{
         stepMsg.clearAllReceiver();
         stepMsg.addReceiver(this.coordinatorAgent);
         try {
-            MessageContent mc = new MessageContent(MessageType.DONE, null);
-            stepMsg.setContentObject(mc);
+            if(!initStep)//in the case of initialization step we send message null
+            {
+                stepMsg.setContentObject(new MessageContent(MessageType.DONE, ambMove));
+            }else
+            {
+                stepMsg.setContentObject(new MessageContent(MessageType.DONE, null));
+                initStep = false;
+            }
+            
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -106,61 +118,84 @@ public class HospitalCoordinator extends ImasAgent{
         searchCriterion.setType(AgentType.HOSPITAL.toString());
         this.hospitalAgents = UtilsAgents.searchAgents(this, searchCriterion);
         
+        searchCriterion = new ServiceDescription();
+        searchCriterion.setType(AgentType.AMBULANCE.toString());
+        this.ambulances = UtilsAgents.searchAgents(this, searchCriterion);        
+        
         addBehaviour(new CyclicBehaviour(this)
         {
             @Override
             public void action() {
-                ACLMessage msg = receive(MessageTemplate.and(MessageTemplate.MatchSender(coordinatorAgent), MessageTemplate.MatchPerformative(ACLMessage.INFORM)));
+                ACLMessage msg = receive(MessageTemplate.MatchPerformative(ACLMessage.INFORM));
                         if (msg!=null){
-                            System.out.println( " - " +
-                               myAgent.getLocalName() + " <- " + "game settings rrecived");
-                               //msg.getContent() );
+                            
+                            if(msg.getSender().equals(coordinatorAgent)) {
+                            
+                                System.out.println( " - " +
+                                   myAgent.getLocalName() + " <- " + "game settings rrecived");
+                                   //msg.getContent() );
+                                try {
+                                    MessageContent mc = (MessageContent)msg.getContentObject();
+                                    switch(mc.getMessageType()) {
+                                        case INFORM_CITY_STATUS:
+                                            GameSettings game = (GameSettings)mc.getContent();
+                                            ACLMessage initialRequest = new ACLMessage(ACLMessage.INFORM);
+                                            initialRequest.clearAllReceiver();
 
-                            try {
-                                MessageContent mc = (MessageContent)msg.getContentObject();
-                                switch(mc.getMessageType()) {
-                                    case INFORM_CITY_STATUS:
-                                        GameSettings game = (GameSettings)mc.getContent();
-                                        ACLMessage initialRequest = new ACLMessage(ACLMessage.INFORM);
-                                        initialRequest.clearAllReceiver();
-                                        
-                                        hospitalAgents.forEach(ha ->{
-                                            initialRequest.addReceiver(ha);
-                                        });
-                                        
-                                       try {
+                                            hospitalAgents.forEach(ha ->{
+                                                initialRequest.addReceiver(ha);
+                                            });
 
-                                           initialRequest.setContentObject(new MessageContent(MessageType.INFORM_CITY_STATUS, game));
-                                          // log("Request message content:" + initialRequest.getContent());
-                                       } catch (Exception e) {
-                                           e.printStackTrace();
-                                       }
-                                       this.myAgent.send(initialRequest);                                        
-                                       
-                                       if(game.isNewFireAppeard()) {
-                                            ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
-                                            cfp.setContentObject(new MessageContent(MessageType.NEW_FIRES, game.getCurrentBuildingFire()));
-                                            log(String.format("Start auction with %d", hospitalAgents.size()));
-                                            this.myAgent.addBehaviour(new AuctionManager(myAgent, cfp, game.getCurrentBuildingFire()));
-                                       }
-                                       
-                                        break;
-                                    default:
-                                        this.block();
+                                           try {
+
+                                               initialRequest.setContentObject(new MessageContent(MessageType.INFORM_CITY_STATUS, game));
+                                              // log("Request message content:" + initialRequest.getContent());
+                                           } catch (Exception e) {
+                                               e.printStackTrace();
+                                           }
+                                           this.myAgent.send(initialRequest);                                        
+
+                                           if(game.isNewFireAppeard()) {
+                                                ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
+                                                cfp.setContentObject(new MessageContent(MessageType.NEW_FIRES, game.getCurrentBuildingFire()));
+                                                log(String.format("Start auction with %d", hospitalAgents.size()));
+                                                this.myAgent.addBehaviour(new AuctionManager(myAgent, cfp, game.getCurrentBuildingFire()));
+                                           }
+
+                                            break;
+                                        default:
+                                            this.block();
+                                    }
+
+
+                                   //this.send(initialRequest);
+
+                                } catch (UnreadableException ex) {
+                                    Logger.getLogger(HospitalCoordinator.class.getName()).log(Level.SEVERE, null, ex);
+                                } catch (IOException ex) {
+                                    Logger.getLogger(HospitalCoordinator.class.getName()).log(Level.SEVERE, null, ex);
                                 }
 
-                               
-                               //this.send(initialRequest);
-
-                            } catch (UnreadableException ex) {
-                                Logger.getLogger(HospitalCoordinator.class.getName()).log(Level.SEVERE, null, ex);
-                            } catch (IOException ex) {
-                        Logger.getLogger(HospitalCoordinator.class.getName()).log(Level.SEVERE, null, ex);
-                    }
 
 
+                                ((HospitalCoordinator)myAgent).informStepCoordinator();
+                            }
+                            else {
+                                if(msg.getSender().getLocalName().startsWith("amb")) {
+                                    
+                                    MessageContent mc;
+                                    try {
+                                         mc = (MessageContent)msg.getContentObject();
+                                         ambMove.put(msg.getSender(), (Object[])mc.getContent());
 
-                        ((HospitalCoordinator)myAgent).informStepCoordinator();
+                                    } catch (UnreadableException ex) {
+                                        Logger.getLogger(FiremenCoordinator.class.getName()).log(Level.SEVERE, null, ex);
+                                    }
+                                    if(ambMove.size()== ambulances.size()) {
+                                        informStepCoordinator();
+                                    }                                        
+                                }
+                            }
                         }
                         else {
                             block();
