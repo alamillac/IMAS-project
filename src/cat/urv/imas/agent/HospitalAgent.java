@@ -245,7 +245,7 @@ public class HospitalAgent extends ImasAgent{
 
                 }
 
-                float hBid = 1 / ha.hospitalCell.getAvaliableBeds() + bestBid;
+                float hBid = ha.hospitalCell.getAvaliableBeds() + bestBid;
 
                 reply.setContent(hBid + "");
             }
